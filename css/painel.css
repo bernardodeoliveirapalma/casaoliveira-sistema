@@ -410,6 +410,18 @@ select.entrada { appearance: none; background-image: url("data:image/svg+xml,%3C
 .ilustra-ok svg { width: 40px; height: 40px; }
 .pessoa input[type=checkbox] { width: 20px; height: 20px; flex: none; }
 
+/* ---------- E-mail ---------- */
+.email-previa { background: #F2EEE6; border-radius: var(--r-medio); padding: 18px 16px; font-family: Georgia, 'Times New Roman', serif; }
+.ep-marca { font-size: 15px; letter-spacing: 3px; text-transform: uppercase; color: var(--verde-escuro); margin: 0 4px 12px; }
+.ep-cartao { background: #fff; border-radius: 14px; padding: 22px 20px; }
+.ep-cartao p { margin: 0 0 12px; font-size: 15px; line-height: 1.6; color: #3B3328; }
+.ep-assunto { font-family: inherit; font-size: 13px; color: var(--marrom-claro); border-bottom: 1px solid var(--creme); padding-bottom: 10px; margin-bottom: 14px; }
+.ep-botao { display: inline-block; background: var(--verde-escuro); color: #F7F3EC; padding: 10px 20px; border-radius: 999px; font-size: 14px; margin: 6px 0 4px; }
+.ep-ass { margin-top: 16px !important; }
+.ep-ass span { color: var(--marrom-claro); }
+.ep-rodape { font: 11px/1.5 Arial, sans-serif; color: var(--marrom-claro); margin: 12px 4px 0; }
+.grade-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
 /* ---------- Celular ---------- */
 @media (max-width: 1023px) {
   .lateral { display: none; }
@@ -446,6 +458,7 @@ select.entrada { appearance: none; background-image: url("data:image/svg+xml,%3C
   .janela { max-height: 92vh; border-radius: 28px 28px 0 0; }
   .topo .btn { width: 100%; }
   .dois-modos { grid-template-columns: 1fr; }
+  .grade-2 { grid-template-columns: 1fr; }
   .quadro { grid-auto-columns: 82%; margin: 0 -16px; padding: 0 16px 12px; scroll-padding: 0 16px; }
   .so-pc { display: none; }
   .painel-filtros { padding: 18px 16px; }

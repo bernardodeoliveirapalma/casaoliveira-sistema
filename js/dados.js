@@ -69,6 +69,7 @@ var SEMENTE = {
       botaoTexto: 'Ver o site', botaoUrl: 'https://casaoliveira.site', status: 'Aprovado' }
   ],
   comunicados: [],
+  emails: [],
   aberturas: [
     { parceiroId: 'p1', imovelId: 'makai', arquivo: 'Book Makai Beachfront', criadoEm: '2026-11-17T14:20:00Z' },
     { parceiroId: 'p1', imovelId: 'makai', arquivo: '', criadoEm: '2026-11-17T14:18:00Z' }
@@ -77,7 +78,7 @@ var SEMENTE = {
     { id: 'c1', nome: 'Marina (exemplo)', whatsapp: '5548900000001', email: '', idioma: 'pt', etapa: 'Novo', origem: 'Instagram', etiquetas: ['Serra'],
       aceitaWhatsapp: true, aceitaEmail: false, lembrarEm: null, criadoEm: '2026-11-18T12:00:00Z',
       respostas: { 'O que procura': 'Casa de campo', 'Prazo': 'Até 6 meses' }, notas: [] },
-    { id: 'c2', nome: 'Paulo (exemplo)', whatsapp: '5548900000002', email: '', idioma: 'pt', etapa: 'Em conversa', origem: 'Site', etiquetas: ['Praia', 'Investidor'],
+    { id: 'c2', nome: 'Paulo (exemplo)', whatsapp: '5548900000002', email: 'paulo@exemplo.com', idioma: 'pt', etapa: 'Em conversa', origem: 'Site', etiquetas: ['Praia', 'Investidor'],
       aceitaWhatsapp: true, aceitaEmail: true, lembrarEm: '2026-11-18', criadoEm: '2026-11-15T12:00:00Z', respostas: null,
       notas: [{ texto: 'Gostou do Makai. Quer ver a planta do duplex.', autor: 'Bernardo', criadoEm: '2026-11-16T15:00:00Z' }] },
     { id: 'c3', nome: 'Julia (exemplo)', whatsapp: '5548900000003', email: '', idioma: 'en', etapa: 'Visita', origem: 'Anúncio', etiquetas: ['Praia'],
@@ -127,6 +128,7 @@ function DadosDemo() {
   var CHAVE = 'co_painel_v2', db, eu = null;
   try { db = JSON.parse(localStorage.getItem(CHAVE)); } catch (e) { db = null; }
   if (!db || !db.imoveis) db = JSON.parse(JSON.stringify(SEMENTE));
+  if (!db.emails) db.emails = [];
   if (!db.modelos) { db.modelos = JSON.parse(JSON.stringify(SEMENTE.modelos)); db.comunicados = []; }
   if (!db.parceiros) { db.parceiros = JSON.parse(JSON.stringify(SEMENTE.parceiros)); db.convites = []; db.aberturas = SEMENTE.aberturas.slice(); }
   try { eu = JSON.parse(sessionStorage.getItem('co_eu')); } catch (e) {}
@@ -174,6 +176,20 @@ function DadosDemo() {
       var x = { id: 'cm' + Date.now(), titulo: c.titulo, modeloId: c.modeloId, filtro: c.filtro, total: n, status: 'Enviado',
         criadoEm: new Date().toISOString(), criadoPor: eu ? eu.nome : '', enviados: n, entregues: entregues, lidos: lidos, falhas: n - entregues };
       db.comunicados.unshift(x); salvar(); return Promise.resolve(x);
+    },
+    emailStatus: function () { return Promise.resolve({ conectado: true, demo: true }); },
+    emails: function () { return Promise.resolve(db.emails.slice()); },
+    criarEmail: function (m, pessoas) {
+      var n = pessoas.length, abertos = Math.round(n * 0.45), cliques = Math.round(n * 0.12);
+      var x = { id: 'em' + Date.now(), assunto: m.assunto, corpo: m.corpo, botaoTexto: m.botaoTexto, botaoUrl: m.botaoUrl, filtro: m.filtro, total: n, status: 'Enviado',
+        criadoEm: new Date().toISOString(), enviados: n, abertos: abertos, cliques: cliques, falhas: 0 };
+      db.emails.unshift(x); salvar(); return Promise.resolve(x);
+    },
+    testeEmail: function () { return Promise.resolve({ para: eu ? eu.email : 'voce@exemplo.com' }); },
+    conviteEmail: function () { return Promise.resolve(); },
+    sairEmail: function (id) {
+      var c = db.clientes.filter(function (x) { return x.id === id; })[0]; if (c) { c.aceitaEmail = false; salvar(); }
+      return Promise.resolve(true);
     },
     convites: function () { return db.convites.filter(function (c) { return !c.usadoEm; }); },
     convidar: function (c) {
@@ -334,6 +350,16 @@ function DadosSupabase() {
       return r.data;
     });
   }
+  function funcaoEmail(corpo) {
+    return sb.functions.invoke('emails', { body: corpo }).then(function (r) {
+      if (r.error) {
+        return (r.error.context && r.error.context.json ? r.error.context.json() : Promise.resolve({})).then(function (b) {
+          var e = new Error('funcao'); e.detalhe = (b && b.erro) || r.error.message; throw e;
+        });
+      }
+      return r.data;
+    });
+  }
   function hoje() { var d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); }
   function enviar(im, arquivo, tipo, nome) {
     var ext = (arquivo.name || 'foto.jpg').split('.').pop().toLowerCase();
@@ -391,6 +417,27 @@ function DadosSupabase() {
             .then(function () { return funcao('enviar', cm.id); }).then(function () { return cm; });
         });
     },
+    emailStatus: function () {
+      return sb.functions.invoke('emails', { body: { acao: 'status' } }).then(function (r) { return r.error ? { conectado: false, semFuncao: true } : r.data; }, function () { return { conectado: false, semFuncao: true }; });
+    },
+    emails: function () {
+      return sb.from('emails_resumo').select('*').order('criado_em', { ascending: false }).limit(50).then(falhou).then(function (l) {
+        return l.map(function (m) { return { id: m.id, assunto: m.assunto, corpo: m.corpo, botaoTexto: m.botao_texto, botaoUrl: m.botao_url, filtro: m.filtro, total: m.total, status: m.status,
+          criadoEm: m.criado_em, enviados: m.enviados, abertos: m.abertos, cliques: m.cliques, falhas: m.falhas }; });
+      });
+    },
+    criarEmail: function (m, pessoas) {
+      return sb.from('emails').insert({ assunto: m.assunto, corpo: m.corpo, botao_texto: m.botaoTexto || null, botao_url: m.botaoUrl || null, filtro: m.filtro, total: pessoas.length, criado_por: eu && eu.id })
+        .select().single().then(falhou).then(function (em) {
+          var linhas = pessoas.map(function (p) { return { email_id: em.id, cliente_id: p.id, nome: p.nome, email: p.email.trim() }; });
+          var lotes = []; for (var i = 0; i < linhas.length; i += 500) lotes.push(linhas.slice(i, i + 500));
+          return lotes.reduce(function (pr, l) { return pr.then(function () { return sb.from('envios_email').insert(l).then(falhou); }); }, Promise.resolve())
+            .then(function () { return funcaoEmail({ acao: 'enviar', id: em.id }); }).then(function () { return em; });
+        });
+    },
+    testeEmail: function (m) { return funcaoEmail({ acao: 'teste', assunto: m.assunto, corpo: m.corpo, botaoTexto: m.botaoTexto, botaoUrl: m.botaoUrl }); },
+    conviteEmail: function (id) { return funcaoEmail({ acao: 'convite', id: id }); },
+    sairEmail: function (id) { return sb.rpc('sair_email', { p_id: id }).then(falhou); },
     parceiros: function () { return parceiros.slice(); },
     parceiro: function (id) { return parceiros.filter(function (x) { return x.id === id; })[0] || null; },
     convites: function () { return convites.slice(); },

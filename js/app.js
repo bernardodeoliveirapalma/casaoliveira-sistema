@@ -51,13 +51,10 @@ var MENU = [
   { id: 'clientes', nome: 'Clientes', ic: 'pessoas' },
   { id: 'parceiros', nome: 'Parceiros', ic: 'parceiro' },
   { id: 'comunicados', nome: 'Comunicados', ic: 'megafone' },
-  { id: 'email', nome: 'E-mail', ic: 'carta', etapa: 5 }
+  { id: 'email', nome: 'E-mail', ic: 'carta' }
 ];
 
-var BREVE = {
-  email: { titulo: 'E-mail', texto: 'Listas e envios com a identidade da casa.',
-    itens: ['Listas por etiqueta', 'Modelos prontos na voz da Casa Oliveira', 'Relatório de abertura', 'Descadastro automático'] }
-};
+var BREVE = {};
 
 /* ---------- sessão ---------- */
 var EU = null;
@@ -811,7 +808,10 @@ function janelaConvite() {
         var c = { nome: d.get('nome').trim(), imobiliaria: d.get('imobiliaria').trim(), email: d.get('email').trim().toLowerCase(), whatsapp: num,
           imoveis: ims, acessoAte: est.prazo ? maisDias(est.prazo) : null };
         var btn = $('button[type=submit]', f); btn.disabled = true; btn.textContent = 'Criando...';
-        Dados.convidar(c).then(function (s) { fecharJanela(); render(); janelaVerConvite(s); },
+        Dados.convidar(c).then(function (s) {
+          fecharJanela(); render();
+          Dados.conviteEmail(s.id).then(function () { s.emailEnviado = true; janelaVerConvite(s); }, function () { janelaVerConvite(s); });
+        },
           function () { btn.disabled = false; btn.textContent = 'Criar convite'; aviso('Não consegui criar o convite. Tente de novo.'); });
       });
     });
@@ -821,17 +821,27 @@ function janelaVerConvite(c) {
   var l = linkConvite(c), msg = msgConvite(c);
   abrirJanela(
     '<span class="rotulo">Convite pronto</span><h2>Agora é só mandar para ' + esc(primeiroNome(c.nome)) + '</h2>' +
+    (c.emailEnviado ? '<div class="aviso-ok" style="margin:14px 0 0">' + I.carta + '<span>Já mandamos o convite por e-mail para ' + esc(c.email) + '. Falta só o WhatsApp.</span></div>' : '') +
     '<p class="suave" style="margin-top:8px">O link vale por 30 dias e só funciona com o e-mail ' + esc(c.email) + '.</p>' +
     '<div class="passo"><span class="rotulo">Mensagem</span><div class="previa">' + esc(msg) + '</div></div>' +
     '<div class="fim">' +
       '<button class="btn btn-linha" type="button" id="cancelar-conv">Cancelar convite</button>' +
       '<button class="btn btn-linha" type="button" id="copiar-conv">' + I.link + 'Copiar link</button>' +
-      '<a class="btn btn-linha" href="mailto:' + esc(c.email) + '?subject=' + encodeURIComponent('Seu acesso ao portal de parceiros da Casa Oliveira') + '&body=' + encodeURIComponent(msg) + '">' + I.carta + 'Enviar por e-mail</a>' +
+      '<button class="btn btn-linha" type="button" id="email-conv">' + I.carta + (c.emailEnviado ? 'Mandar e-mail de novo' : 'Enviar por e-mail') + '</button>' +
       '<a class="btn btn-wa" target="_blank" rel="noopener" href="https://wa.me/' + esc(c.whatsapp || '') + '?text=' + encodeURIComponent(msg) + '">' + I.wa + 'Enviar pelo WhatsApp</a>' +
     '</div>',
     function (j) {
       $('#copiar-conv', j).addEventListener('click', function () {
         (navigator.clipboard ? navigator.clipboard.writeText(l) : Promise.reject()).then(function () { aviso('Link copiado.'); }, function () { prompt('Copie o link:', l); });
+      });
+      var be = $('#email-conv', j);
+      be.addEventListener('click', function () {
+        be.disabled = true; be.textContent = 'Enviando...';
+        Dados.conviteEmail(c.id).then(function () { be.disabled = false; be.innerHTML = I.carta + 'Mandar e-mail de novo'; aviso('Convite enviado para ' + c.email + '.'); },
+          function () {
+            be.disabled = false; be.innerHTML = I.carta + 'Enviar por e-mail';
+            location.href = 'mailto:' + c.email + '?subject=' + encodeURIComponent('Seu acesso ao portal de parceiros da Casa Oliveira') + '&body=' + encodeURIComponent(msg);
+          });
       });
       var cc = $('#cancelar-conv', j);
       cc.addEventListener('click', function () {
@@ -1199,6 +1209,148 @@ function janelaComunicado() {
   }, function () { aviso('Rode o passo 07 no Supabase antes.'); });
 }
 
+
+/* ============================================================
+   E-MAIL (Brevo)
+   ============================================================ */
+var EM = { conectado: null };
+function podeEmail(c) { return c.aceitaEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(c.email || '').trim()); }
+function temEmail(c) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(c.email || '').trim()); }
+function previaEmail(m, nome) {
+  var t = String(m.corpo || '').replace(/\{nome\}/g, primeiroNome(nome) || 'tudo bem').replace(/\n{3,}/g, '\n\n').trim();
+  return '<div class="email-previa"><div class="ep-marca">Casa Oliveira</div><div class="ep-cartao">' +
+    (m.assunto ? '<div class="ep-assunto">' + esc(m.assunto) + '</div>' : '') +
+    t.split(/\n\n/).map(function (p) { return '<p>' + esc(p).replace(/\n/g, '<br>') + '</p>'; }).join('') +
+    (m.botaoTexto && m.botaoUrl ? '<span class="ep-botao">' + esc(m.botaoTexto) + '</span>' : '') +
+    '<p class="ep-ass">Ane &amp; Bernardo<br><span>Casa Oliveira</span></p></div>' +
+    '<div class="ep-rodape">Você recebe este e-mail porque tem contato com a Casa Oliveira. <u>Não quero mais receber</u>.</div></div>';
+}
+var MODELOS_EMAIL = [
+  { nome: 'Material do evento', assunto: 'O material que prometemos, {nome}', corpo: 'Olá, {nome}.\n\nFoi muito bom ter você com a gente. Como combinado, separamos o material para você ver com calma.\n\nQualquer dúvida, é só responder este e-mail.', botaoTexto: 'Ver o material', botaoUrl: 'https://casaoliveira.site' },
+  { nome: 'Novidade da curadoria', assunto: 'Uma novidade da nossa curadoria', corpo: 'Olá, {nome}.\n\nSeparamos uma novidade que tem a ver com o que você procura. Escolhemos com o mesmo cuidado de sempre: lugar, construtora e potencial.\n\nSe quiser os detalhes, é só responder este e-mail.', botaoTexto: 'Conhecer', botaoUrl: 'https://casaoliveira.site' },
+  { nome: 'Em branco', assunto: '', corpo: 'Olá, {nome}.\n\n', botaoTexto: '', botaoUrl: '' }
+];
+
+function telaEmail() {
+  var cls = Dados.clientes(), com = cls.filter(temEmail).length, ok = cls.filter(podeEmail).length;
+  return '<div class="entra">' +
+    '<div class="topo"><div><span class="rotulo">E-mail</span><h1>E-mails</h1></div>' +
+      '<div class="topo-acoes"><button class="btn btn-verde" type="button" data-novo-email>' + I.carta + 'Novo e-mail</button></div></div>' +
+    '<p class="suave" style="max-width:640px;margin:-8px 0 20px">Cada pessoa recebe com o próprio nome, com a cara da Casa Oliveira. Quem pede para sair é tirado da lista sozinho, e vocês veem quem abriu e quem clicou.</p>' +
+    '<div id="em-status"></div>' +
+    '<div class="blocos">' +
+      '<div class="bloco c1"><span class="rotulo">Podem receber</span><div class="numero">' + ok + '</div><span class="suave">têm e-mail e autorizaram</span></div>' +
+      '<div class="bloco c2"><span class="rotulo">Sem autorização</span><div class="numero">' + (com - ok) + '</div><span class="suave">têm e-mail, mas não autorizaram</span></div>' +
+      '<div class="bloco c3"><span class="rotulo">Sem e-mail</span><div class="numero">' + (cls.length - com) + '</div><span class="suave">só WhatsApp</span></div>' +
+    '</div>' +
+    '<span class="rotulo" style="display:block;margin-bottom:12px">Enviados</span><div id="lista-em" class="lista-cli"><p class="suave" style="padding:18px">Carregando...</p></div>' +
+  '</div>';
+}
+function preencherEmail() {
+  Dados.emailStatus().then(function (st) {
+    EM.conectado = !!st.conectado;
+    var box = $('#em-status'); if (!box) return;
+    box.innerHTML = st.conectado ? (st.demo ? '' : '<div class="aviso-ok">' + I.carta + '<span>E-mail conectado. Os envios saem na hora.</span></div>') :
+      '<div class="aviso-pendente">' + I.carta + '<span><b>Falta conectar o Brevo.</b> Você já pode escrever e escolher o público. O envio libera quando a conta estiver ligada.</span></div>';
+  });
+  Dados.emails().then(function (l) {
+    var box = $('#lista-em'); if (!box) return;
+    box.innerHTML = l.length ? l.map(function (m) {
+      var pct = function (n) { return m.total ? Math.round(n / m.total * 100) : 0; };
+      return '<div class="linha-cli linha-com"><span class="avatar">' + I.carta + '</span>' +
+        '<div class="cli-nome"><div>' + esc(m.assunto.replace(/\{nome\}/g, '…')) + '</div><small>' + esc(dataCurta(m.criadoEm)) + ' · ' + m.total + (m.total === 1 ? ' pessoa · ' : ' pessoas · ') + esc(m.status) + '</small>' +
+          '<div class="barra-com"><i style="width:' + pct(m.cliques) + '%"></i><i class="ent" style="width:' + Math.max(0, pct(m.abertos) - pct(m.cliques)) + '%"></i></div></div>' +
+        '<div class="nums-com so-pc"><span><b>' + m.abertos + '</b> abriram</span><span><b>' + m.cliques + '</b> clicaram</span>' + (m.falhas ? '<span><b>' + m.falhas + '</b> voltaram</span>' : '') + '</div></div>';
+    }).join('') : '<p class="suave" style="padding:18px">Nenhum e-mail enviado ainda.</p>';
+  }, function () { var box = $('#lista-em'); if (box) box.innerHTML = '<p class="suave" style="padding:18px">Rode o passo 10 no Supabase para ver os e-mails.</p>'; });
+}
+function janelaEmail() {
+  var est = { etiquetas: [], etapas: [], m: JSON.parse(JSON.stringify(MODELOS_EMAIL[0])) };
+  var tags = todasEtiquetas();
+  abrirJanela(
+    '<span class="rotulo">Novo e-mail</span><h2>Para quem e o quê?</h2>' +
+    '<div class="passo"><span class="rotulo">1. Quem recebe</span>' +
+      '<small class="suave" style="display:block;margin-bottom:8px">Sem escolher nada, vai para todos que autorizaram. Escolhendo, vai para quem tem qualquer uma das etiquetas.</small>' +
+      '<div class="tags">' + tags.map(function (t) { return '<button type="button" class="chip" data-et="' + esc(t) + '">' + esc(t) + '</button>'; }).join('') + '</div>' +
+      '<div class="tags" style="margin-top:12px">' + ETAPAS.map(function (e) { return '<button type="button" class="chip" data-ee="' + esc(e) + '">' + esc(e) + '</button>'; }).join('') + '</div></div>' +
+    '<div class="passo"><span class="rotulo">2. Começar de</span><div class="tags">' + MODELOS_EMAIL.map(function (m, i) {
+      return '<button type="button" class="chip' + (i === 0 ? ' ativo' : '') + '" data-mod="' + i + '">' + esc(m.nome) + '</button>'; }).join('') + '</div></div>' +
+    '<div class="passo"><span class="rotulo">3. O e-mail</span>' +
+      '<label class="campo"><span class="rotulo">Assunto</span><input class="entrada" id="e-assunto"></label>' +
+      '<label class="campo"><span class="rotulo">Texto</span><textarea class="entrada" id="e-corpo" rows="7"></textarea></label>' +
+      '<small class="suave" style="display:block;margin:-4px 0 10px">{nome} vira o primeiro nome da pessoa. Deixe uma linha em branco entre os parágrafos.</small>' +
+      '<div class="grade-2"><label class="campo"><span class="rotulo">Texto do botão (opcional)</span><input class="entrada" id="e-btxt"></label>' +
+      '<label class="campo"><span class="rotulo">Link do botão</span><input class="entrada" id="e-burl" placeholder="https://"></label></div></div>' +
+    '<div class="passo"><span class="rotulo" id="e-como">Como fica</span><div id="e-previa"></div></div>' +
+    '<div class="resumo-com" id="e-resumo"></div>' +
+    '<div class="fim"><button class="btn btn-linha" type="button" data-fechar>Cancelar</button>' +
+      '<button class="btn btn-linha" type="button" id="e-teste">' + I.carta + 'Mandar teste para mim</button>' +
+      '<button class="btn btn-verde" type="button" id="e-enviar">' + I.carta + 'Enviar</button></div>',
+    function (j) {
+      function pessoas() { return publico(est).filter(podeEmail); }
+      function lerCampos() {
+        est.m.assunto = $('#e-assunto', j).value; est.m.corpo = $('#e-corpo', j).value;
+        est.m.botaoTexto = $('#e-btxt', j).value.trim(); est.m.botaoUrl = $('#e-burl', j).value.trim();
+        if (est.m.botaoUrl && !/^https?:\/\//i.test(est.m.botaoUrl)) est.m.botaoUrl = 'https://' + est.m.botaoUrl;
+      }
+      function escrever() {
+        $('#e-assunto', j).value = est.m.assunto; $('#e-corpo', j).value = est.m.corpo;
+        $('#e-btxt', j).value = est.m.botaoTexto; $('#e-burl', j).value = est.m.botaoUrl;
+      }
+      function atualizar() {
+        lerCampos();
+        var todos = publico(est), ok = todos.filter(podeEmail), fora = todos.length - ok.length;
+        var ex = ok[0] ? ok[0].nome : 'Marina';
+        $('#e-como', j).textContent = 'Como fica para ' + (primeiroNome(ex) || 'Marina');
+        $('#e-previa', j).innerHTML = previaEmail({ assunto: est.m.assunto.replace(/\{nome\}/g, primeiroNome(ex)), corpo: est.m.corpo, botaoTexto: est.m.botaoTexto, botaoUrl: est.m.botaoUrl }, ex);
+        $('#e-resumo', j).innerHTML = '<div><b>' + ok.length + '</b><span>vão receber</span></div><div><b>Grátis</b><span>até 300 por dia no Brevo</span></div>' +
+          (fora ? '<div><b>' + fora + '</b><span>ficam de fora, sem e-mail ou sem autorização</span></div>' : '');
+        var b = $('#e-enviar', j); delete b.dataset.ok;
+        var pronto = ok.length && est.m.assunto.trim() && est.m.corpo.trim();
+        b.disabled = !pronto || EM.conectado === false;
+        b.innerHTML = I.carta + (EM.conectado === false ? 'Conecte o Brevo para enviar' : !est.m.assunto.trim() ? 'Falta o assunto' : 'Enviar para ' + ok.length + (ok.length === 1 ? ' pessoa' : ' pessoas'));
+      }
+      function alternar(lista, v) { var i = lista.indexOf(v); if (i >= 0) lista.splice(i, 1); else lista.push(v); }
+      $$('[data-et]', j).forEach(function (b) { b.addEventListener('click', function () { alternar(est.etiquetas, b.dataset.et); b.classList.toggle('ativo'); atualizar(); }); });
+      $$('[data-ee]', j).forEach(function (b) { b.addEventListener('click', function () { alternar(est.etapas, b.dataset.ee); b.classList.toggle('ativo'); atualizar(); }); });
+      $$('[data-mod]', j).forEach(function (b) {
+        b.addEventListener('click', function () {
+          est.m = JSON.parse(JSON.stringify(MODELOS_EMAIL[+b.dataset.mod])); escrever();
+          $$('[data-mod]', j).forEach(function (x) { x.classList.toggle('ativo', x === b); }); atualizar();
+        });
+      });
+      ['#e-assunto', '#e-corpo', '#e-btxt', '#e-burl'].forEach(function (id) { $(id, j).addEventListener('input', atualizar); });
+      escrever(); atualizar();
+      var t = $('#e-teste', j);
+      t.addEventListener('click', function () {
+        lerCampos(); if (!est.m.assunto.trim() || !est.m.corpo.trim()) { aviso('Escreva o assunto e o texto antes.'); return; }
+        t.disabled = true; t.textContent = 'Mandando...';
+        Dados.testeEmail(est.m).then(function (r) { t.disabled = false; t.innerHTML = I.carta + 'Mandar teste para mim'; aviso('Teste enviado para ' + ((r && r.para) || 'o seu e-mail') + '.'); },
+          function (e) { t.disabled = false; t.innerHTML = I.carta + 'Mandar teste para mim'; aviso('Não deu: ' + ((e && e.detalhe) || 'tente de novo') + '.'); });
+      });
+      var b = $('#e-enviar', j);
+      b.addEventListener('click', function () {
+        lerCampos(); var ps = pessoas(); if (!ps.length) return;
+        if (!b.dataset.ok) { b.dataset.ok = 1; b.innerHTML = I.carta + 'Toque de novo para enviar para ' + ps.length + (ps.length === 1 ? ' pessoa' : ' pessoas'); return; }
+        b.disabled = true; b.textContent = 'Enviando...';
+        Dados.criarEmail({ assunto: est.m.assunto.trim(), corpo: est.m.corpo.trim(), botaoTexto: est.m.botaoTexto, botaoUrl: est.m.botaoUrl,
+          filtro: { etiquetas: est.etiquetas, etapas: est.etapas } }, ps).then(function () {
+          fecharJanela(); aviso('E-mail saindo para ' + ps.length + (ps.length === 1 ? ' pessoa.' : ' pessoas.')); render();
+        }, function (e) { b.disabled = false; aviso('Não deu: ' + ((e && e.detalhe) || 'tente de novo') + '.'); atualizar(); });
+      });
+    });
+}
+function telaSairEmail(id) {
+  $('#app').innerHTML = '<div class="login"><div class="login-caixa entra"><img class="logo" src="assets/logo.png" alt="Casa Oliveira"><p class="suave">Um instante...</p></div></div>';
+  var feito = function () {
+    $('#app').innerHTML = '<div class="login"><div class="login-caixa entra"><img class="logo" src="assets/logo.png" alt="Casa Oliveira">' +
+      '<div><h1>Pronto</h1><p class="suave">Você não vai mais receber nossos e-mails. Se mudar de ideia, é só nos chamar no WhatsApp.</p></div>' +
+      '<a class="btn btn-linha btn-bloco" href="https://casaoliveira.site">Ir para o site da Casa Oliveira</a></div></div>';
+  };
+  if (id === 'teste') { feito(); return; }
+  Dados.sairEmail(id).then(feito, feito);
+}
+
 /* ---------- envio em sequência (pelo WhatsApp de sempre, sem custo) ---------- */
 function janelaSequencia() {
   var est = { etiqueta: '', busca: '', sel: {}, imovel: '', passo: 1, fila: [], i: 0 };
@@ -1297,6 +1449,7 @@ function render() {
   window.scrollTo(0, 0);
   var partes = (location.hash || '#/hoje').replace(/^#\//, '').split('/');
   var rota = partes[0] || 'hoje', arg = decodeURIComponent(partes[1] || '');
+  if (rota === 'sair') { telaSairEmail(arg); return; }
   if (rota === 'convite' && !EU) { telaConvite(arg); return; }
   if (!EU) { telaEntrar(); return; }
   if (rota === 'convite') { location.hash = '#/hoje'; return; }
@@ -1314,6 +1467,7 @@ function render() {
   else if (rota === 'clientes') miolo = telaClientes();
   else if (rota === 'parceiros') miolo = telaParceiros();
   else if (rota === 'comunicados') miolo = telaComunicados();
+  else if (rota === 'email') miolo = telaEmail();
   else if (rota === 'parceiro') { miolo = telaParceiro(arg); atual = 'parceiros'; }
   else if (rota === 'cliente') { miolo = telaCliente(arg); atual = 'clientes'; }
   else if (BREVE[rota]) miolo = telaBreve(rota);
@@ -1348,6 +1502,8 @@ function ligar(rota, arg) {
     });
   }
   if (rota === 'cliente') ligarCliente(arg);
+  $$('[data-novo-email]').forEach(function (b) { b.addEventListener('click', janelaEmail); });
+  if (rota === 'email') preencherEmail();
   $$('[data-sequencia]').forEach(function (b) { b.addEventListener('click', janelaSequencia); });
   $$('[data-convidar]').forEach(function (b) { b.addEventListener('click', janelaConvite); });
   $$('[data-ver-convite]').forEach(function (b) {
