@@ -55,6 +55,8 @@ create policy equipe_comunicados on comunicados for all using (eh_equipe()) with
 create policy equipe_envios on envios for all using (eh_equipe()) with check (eh_equipe());
 grant select, insert, update, delete on modelos, comunicados, envios to authenticated;
 grant usage, select on all sequences in schema public to authenticated;
+grant select, insert, update, delete on modelos, comunicados, envios, clientes, anotacoes to service_role;
+grant usage, select on all sequences in schema public to service_role;
 
 -- Resumo de cada comunicado (quantos enviados, entregues, lidos, com falha)
 create or replace view comunicados_resumo with (security_invoker = true) as
