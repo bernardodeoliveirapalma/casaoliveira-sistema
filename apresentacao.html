@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Casa Oliveira</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400&family=Jost:wght@300;400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/painel.css">
+<style>
+  .ap { max-width: 760px; margin: 0 auto; padding: 20px 16px 120px; }
+  .ap header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .ap header img { width: 140px; }
+  .ap .capa { height: 440px; }
+  .ap .texto { font-size: 18px; margin: 8px 0 24px; }
+  .ap .galeria { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 24px 0; }
+  .ap .galeria div { aspect-ratio: 4/5; border-radius: 18px; background: var(--t-areia) center/cover no-repeat; }
+  .ap .galeria div:first-child:last-child { grid-column: 1 / -1; aspect-ratio: 16/10; }
+  .ap footer { text-align: center; margin-top: 40px; color: var(--marrom-claro); }
+  .ap footer .ass { font-family: var(--serif); font-size: 24px; color: var(--verde-escuro); }
+  .ap .fixo { position: fixed; left: 16px; right: 16px; bottom: 16px; max-width: 728px; margin: 0 auto; }
+  @media (max-width: 640px) { .ap .capa { height: 360px; } }
+</style>
+</head>
+<body>
+<div class="ap" id="ap"></div>
+<script src="js/config.js"></script>
+<script src="js/dados.js"></script>
+<script>
+(function () {
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  var p = new URLSearchParams(location.search);
+  var L = p.get('lang') === 'en' ? 1 : 0;
+  var im = Dados.imovel(p.get('i'));
+  var T = {
+    titulo: ['Apresentação', 'Presentation'], docs: ['Materiais', 'Materials'], fotos: ['Fotos', 'Photos'],
+    cta: ['Conversar com a Casa Oliveira', 'Talk to Casa Oliveira'], idioma: ['English', 'Português'],
+    nao: ['Esta apresentação não está mais disponível.', 'This presentation is no longer available.'],
+    ex: [' · exemplo', ' · sample']
+  };
+  var ap = document.getElementById('ap');
+  if (!im) { ap.innerHTML = '<div class="breve-tela"><h2>' + T.nao[L] + '</h2></div>'; return; }
+  document.title = im.nome + ' · Casa Oliveira';
+  var msg = L ? 'Hello, Casa Oliveira. I saw the ' + im.nome + ' presentation and would like to talk.' : 'Olá, família. Vi a apresentação do ' + im.nome + ' e quero conversar.';
+  var outro = new URLSearchParams(location.search); if (L) outro.delete('lang'); else outro.set('lang', 'en');
+  ap.innerHTML =
+    '<header><img src="assets/logo.png" alt="Casa Oliveira"><a class="btn btn-linha btn-pequeno" href="?' + outro.toString() + '">' + T.idioma[L] + '</a></header>' +
+    '<section class="capa" style="background-image:url(\'' + esc(im.fotos[0] || '') + '\')"><div class="sobre"><span class="rotulo" style="color:rgba(242,240,235,.8)">' + T.titulo[L] + '</span>' +
+      '<h1>' + esc(im.nome) + '</h1><p>' + esc(im.local) + '</p></div></section>' +
+    '<p class="texto">' + esc(im.texto[L] || im.texto[0]) + '</p>' +
+    (im.fatos.length ? '<div class="fatos">' + im.fatos.map(function (f) { return '<div class="fato"><div class="k">' + esc(f[0]) + '</div><div class="v">' + esc(f[1]) + '</div></div>'; }).join('') + '</div>' : '') +
+    (im.fotos.length > 1 ? '<div class="galeria">' + im.fotos.slice(1).map(function (f) { return '<div style="background-image:url(\'' + esc(f) + '\')"></div>'; }).join('') + '</div>' : '') +
+    (im.docs.length ? '<section class="painel" style="margin-top:24px"><span class="rotulo">' + T.docs[L] + '</span><div class="docs">' + im.docs.map(function (d) {
+      return '<div class="doc"><span class="ic ' + esc(d.tipo) + '">' + esc((TIPOS_DOC[d.tipo] || 'Doc').slice(0, 4)) + '</span><div class="nome"><div>' + esc(d.nome) + '</div><small>PDF' + (d.exemplo ? T.ex[L] : '') + '</small></div></div>';
+    }).join('') + '</div></section>' : '') +
+    '<footer><div class="ass">Ane &amp; Bernardo</div><div class="rotulo">Casa Oliveira · Florianópolis</div></footer>' +
+    '<a class="btn btn-wa fixo" target="_blank" rel="noopener" href="https://wa.me/' + CONFIG.whatsapp + '?text=' + encodeURIComponent(msg) + '">' + T.cta[L] + '</a>';
+})();
+</script>
+</body>
+</html>
