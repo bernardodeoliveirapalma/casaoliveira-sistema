@@ -1109,7 +1109,7 @@ function preencherComunicados() {
 
 function janelaModelo(m) {
   var novo = !m;
-  m = m || { titulo: '', corpo: 'Olá, {{1}}. Aqui é a família Casa Oliveira. ', botaoTexto: 'Falar com a Casa Oliveira', botaoUrl: 'https://wa.me/' + CONFIG.whatsapp, categoria: 'MARKETING', idioma: 'pt_BR' };
+  m = m || { titulo: '', corpo: 'Olá, {{1}}. Aqui é a família Casa Oliveira. ', botaoTexto: 'Ver o site', botaoUrl: 'https://casaoliveira.site', categoria: 'MARKETING', idioma: 'pt_BR' };
   abrirJanela(
     '<span class="rotulo">' + (novo ? 'Novo modelo' : 'Editar modelo') + '</span><h2>O que a mensagem vai dizer?</h2>' +
     '<form id="f-modelo" class="grade-form" style="margin-top:20px">' +
@@ -1134,6 +1134,8 @@ function janelaModelo(m) {
         e.preventDefault();
         var d = new FormData(f);
         m.titulo = d.get('titulo').trim(); m.corpo = d.get('corpo').trim(); m.botaoTexto = d.get('botaoTexto').trim(); m.botaoUrl = d.get('botaoUrl').trim();
+        if (/wa\.me|whatsapp\.com/i.test(m.botaoUrl)) { aviso('A Meta não aceita link de WhatsApp no botão. Use o site ou deixe o link vazio: a pessoa já pode responder direto.'); return; }
+        if (m.botaoUrl && !/^https:\/\//i.test(m.botaoUrl)) m.botaoUrl = 'https://' + m.botaoUrl.replace(/^https?:\/\//i, '');
         if (!m.nomeMeta) m.nomeMeta = m.titulo.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '').slice(0, 60) + '_' + Date.now().toString(36);
         Dados.salvarModelo(m).then(function () { fecharJanela(); aviso('Modelo salvo. Agora é mandar para aprovação.'); preencherComunicados(); }, function () { aviso('Não consegui salvar o modelo.'); });
       });

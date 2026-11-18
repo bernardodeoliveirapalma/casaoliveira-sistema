@@ -66,7 +66,7 @@ var SEMENTE = {
   modelos: [
     { id: 'm1', nomeMeta: 'novidade_casa_oliveira', titulo: 'Novidade da curadoria', idioma: 'pt_BR', categoria: 'MARKETING',
       corpo: 'Olá, {{1}}. Aqui é a família Casa Oliveira. Separamos uma novidade da nossa curadoria que tem a ver com o que você procura. Quer que a gente te mande os detalhes?',
-      botaoTexto: 'Falar com a Casa Oliveira', botaoUrl: 'https://wa.me/5548992228009', status: 'Aprovado' }
+      botaoTexto: 'Ver o site', botaoUrl: 'https://casaoliveira.site', status: 'Aprovado' }
   ],
   comunicados: [],
   aberturas: [

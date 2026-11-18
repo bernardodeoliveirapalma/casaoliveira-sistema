@@ -73,5 +73,5 @@ grant select on comunicados_resumo to authenticated;
 insert into modelos (nome_meta, titulo, corpo, botao_texto, botao_url)
 values ('novidade_casa_oliveira', 'Novidade da curadoria',
   'Olá, {{1}}. Aqui é a família Casa Oliveira. Separamos uma novidade da nossa curadoria que tem a ver com o que você procura. Quer que a gente te mande os detalhes?',
-  'Falar com a Casa Oliveira', 'https://wa.me/5548992228009')
+  'Ver o site', 'https://casaoliveira.site')
 on conflict (nome_meta) do nothing;
