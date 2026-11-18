@@ -50,13 +50,11 @@ var MENU = [
   { id: 'imoveis', nome: 'Imóveis', ic: 'casa' },
   { id: 'clientes', nome: 'Clientes', ic: 'pessoas' },
   { id: 'parceiros', nome: 'Parceiros', ic: 'parceiro' },
-  { id: 'comunicados', nome: 'Comunicados', ic: 'megafone', etapa: 4 },
+  { id: 'comunicados', nome: 'Comunicados', ic: 'megafone' },
   { id: 'email', nome: 'E-mail', ic: 'carta', etapa: 5 }
 ];
 
 var BREVE = {
-  comunicados: { titulo: 'Comunicados de WhatsApp', texto: 'Mensagens para um grupo inteiro, na hora ou agendadas, pela API oficial da Meta.',
-    itens: ['Escolher o grupo por etiqueta, etapa ou empreendimento', 'Modelos aprovados em português e inglês', 'Resumo antes de enviar: pessoas, modelo e custo', 'Relatório de entregues, lidas e respostas'] },
   email: { titulo: 'E-mail', texto: 'Listas e envios com a identidade da casa.',
     itens: ['Listas por etiqueta', 'Modelos prontos na voz da Casa Oliveira', 'Relatório de abertura', 'Descadastro automático'] }
 };
@@ -238,7 +236,7 @@ function telaHoje() {
       '<a class="atalho" data-novo-imovel><span class="ic">' + I.mais + '</span><span>Novo imóvel</span><small>Fotos, documentos e ficha</small></a>' +
       '<a class="atalho" href="#/imoveis"><span class="ic" style="background:#E7F0E1;color:#2F6B43">' + I.wa + '</span><span>Enviar material</span><small>Escolha o imóvel e o cliente</small></a>' +
       '<a class="atalho" href="#/clientes"><span class="ic" style="background:var(--t-areia);color:#6A4A12">' + I.pessoas + '</span><span>Clientes</span><small>Base, etapas e etiquetas</small></a>' +
-      '<a class="atalho" href="#/comunicados"><span class="ic" style="background:var(--t-terra);color:var(--marrom)">' + I.megafone + '</span><span>Comunicados</span><small>Chega na etapa 4</small></a>' +
+      '<a class="atalho" href="#/comunicados"><span class="ic" style="background:var(--t-terra);color:var(--marrom)">' + I.megafone + '</span><span>Comunicados</span><small>Mensagem para um grupo inteiro</small></a>' +
     '</div></div>';
 }
 
@@ -519,7 +517,7 @@ function telaClientes() {
   var tags = todasEtiquetas(), f = filtroCli.etiqueta;
   return '<div class="entra">' +
     '<div class="topo"><div><span class="rotulo">Base da Casa Oliveira</span><h1>Clientes e leads</h1></div>' +
-      '<div class="topo-acoes"><button class="btn btn-verde" type="button" data-novo-cliente>' + I.mais + 'Novo cliente</button></div></div>' +
+      '<div class="topo-acoes"><button class="btn btn-linha" type="button" data-sequencia>' + I.wa + 'Mandar para vários</button><button class="btn btn-verde" type="button" data-novo-cliente>' + I.mais + 'Novo cliente</button></div></div>' +
     '<div class="filtros"><label class="busca">' + I.lupa + '<input class="entrada" id="busca-cli" placeholder="Buscar por nome, telefone ou etiqueta" value="' + esc(filtroCli.busca) + '"></label>' +
       '<div class="idiomas" id="vista"><button type="button" data-v="quadro" class="' + (filtroCli.vista === 'quadro' ? 'ativo' : '') + '">Quadro</button><button type="button" data-v="lista" class="' + (filtroCli.vista === 'lista' ? 'ativo' : '') + '">Lista</button></div>' +
       (tags.length ? '<button type="button" class="chip btn-filtro' + (filtroCli.aberto ? ' aberto' : '') + (f ? ' com' : '') + '" id="abre-filtros">' + I.filtro + 'Filtrar' + (f ? '<span class="bolinha">1</span>' : '') + '</button>' : '') +
@@ -1027,6 +1025,261 @@ function telaConvite(id) {
 }
 
 /* ============================================================
+   COMUNICADOS DE WHATSAPP
+   ============================================================ */
+var CUSTO_MSG = 0.32; // marketing no Brasil, tabela da Meta de out/2026 (aprox.)
+var WA = { conectado: null };
+function reais(v) { return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
+function podeReceber(c) { return c.aceitaWhatsapp && soNumeros(c.whatsapp).length >= 10; }
+function publico(f) {
+  var et = f.etiquetas || [], ep = f.etapas || [];
+  return Dados.clientes().filter(function (c) {
+    if (et.length && !(c.etiquetas || []).some(function (t) { return et.indexOf(t) >= 0; })) return false;
+    if (ep.length && ep.indexOf(c.etapa) < 0) return false;
+    return true;
+  });
+}
+function previaModelo(m, nome) {
+  return esc(m.corpo).replace(/\{\{1\}\}/g, '<b>' + esc(primeiroNome(nome) || 'Marina') + '</b>');
+}
+function seloModelo(st) {
+  var cor = { 'Aprovado': '#E1E9D9', 'Em análise': '#F1E3C8', 'Recusado': '#EBDDD0', 'Rascunho': 'var(--creme)' }[st] || 'var(--creme)';
+  return '<span class="selo" style="background:' + cor + '">' + esc(st) + '</span>';
+}
+
+function telaComunicados() {
+  var cls = Dados.clientes(), aceitam = cls.filter(podeReceber).length;
+  return '<div class="entra">' +
+    '<div class="topo"><div><span class="rotulo">WhatsApp oficial</span><h1>Comunicados</h1></div>' +
+      '<div class="topo-acoes"><button class="btn btn-linha" type="button" data-sequencia>' + I.wa + 'Enviar em sequência</button><button class="btn btn-verde" type="button" data-novo-com>' + I.megafone + 'Novo comunicado</button></div></div>' +
+    '<div class="dois-modos"><div><b>Enviar em sequência</b><span>Pelo WhatsApp de sempre, sem custo. O painel prepara a mensagem de cada pessoa com o nome dela e você aperta enviar. Bom para grupos pequenos, como quem foi a um evento.</span></div>' +
+      '<div><b>Comunicado</b><span>Sai tudo de uma vez pela API oficial da Meta, para quem autorizou. Bom para grupos grandes.</span></div></div>' +
+    '<div id="wa-status"></div>' +
+    '<div class="blocos">' +
+      '<div class="bloco c1"><span class="rotulo">Podem receber</span><div class="numero">' + aceitam + '</div><span class="suave">autorizaram comunicados</span></div>' +
+      '<div class="bloco c2"><span class="rotulo">Sem autorização</span><div class="numero">' + (cls.length - aceitam) + '</div><span class="suave">não recebem comunicados</span></div>' +
+      '<div class="bloco c3"><span class="rotulo">Custo por pessoa</span><div class="numero" style="font-size:44px">' + reais(CUSTO_MSG) + '</div><span class="suave">cobrado pela Meta, aproximado</span></div>' +
+    '</div>' +
+    '<span class="rotulo" style="display:block;margin-bottom:12px">Enviados</span><div id="lista-com" class="lista-cli" style="margin-bottom:28px"><p class="suave" style="padding:18px">Carregando...</p></div>' +
+    '<div class="painel-topo"><span class="rotulo">Modelos de mensagem</span><div style="display:flex;gap:8px">' +
+      '<button class="btn btn-linha btn-pequeno" type="button" data-atualizar-modelos>Atualizar status</button>' +
+      '<button class="btn btn-linha btn-pequeno" type="button" data-novo-modelo>' + I.mais + 'Novo modelo</button></div></div>' +
+    '<p class="suave" style="font-size:14px;margin:-6px 0 14px">A Meta só deixa mandar comunicado com modelo aprovado por ela. A aprovação leva de minutos a um dia.</p>' +
+    '<div id="lista-modelos" class="grade-parc"></div>' +
+  '</div>';
+}
+function preencherComunicados() {
+  Dados.whatsappStatus().then(function (st) {
+    WA.conectado = !!st.conectado;
+    var box = $('#wa-status'); if (!box) return;
+    box.innerHTML = st.conectado ? (st.demo ? '' : '<div class="aviso-ok">' + I.wa + '<span>WhatsApp oficial conectado. Os comunicados saem na hora.</span></div>') :
+      '<div class="aviso-pendente">' + I.wa + '<span><b>Falta conectar o WhatsApp oficial.</b> Você já pode montar os modelos e escolher o público. O envio libera quando o número estiver ligado à Meta.</span></div>';
+  });
+  Dados.comunicados().then(function (l) {
+    var box = $('#lista-com'); if (!box) return;
+    box.innerHTML = l.length ? l.map(function (c) {
+      var pct = function (n) { return c.total ? Math.round(n / c.total * 100) : 0; };
+      return '<div class="linha-cli linha-com"><span class="avatar">' + I.megafone + '</span>' +
+        '<div class="cli-nome"><div>' + esc(c.titulo) + '</div><small>' + esc(dataCurta(c.criadoEm)) + ' · ' + c.total + ' pessoas · ' + esc(c.status) + '</small>' +
+          '<div class="barra-com"><i style="width:' + pct(c.lidos) + '%"></i><i class="ent" style="width:' + Math.max(0, pct(c.entregues) - pct(c.lidos)) + '%"></i></div></div>' +
+        '<div class="nums-com so-pc"><span><b>' + c.entregues + '</b> entregues</span><span><b>' + c.lidos + '</b> lidos</span>' + (c.falhas ? '<span><b>' + c.falhas + '</b> falharam</span>' : '') + '</div></div>';
+    }).join('') : '<p class="suave" style="padding:18px">Nenhum comunicado enviado ainda.</p>';
+  }, function () { var box = $('#lista-com'); if (box) box.innerHTML = '<p class="suave" style="padding:18px">Rode o passo 07 no Supabase para ver os comunicados.</p>'; });
+  Dados.modelos().then(function (l) {
+    var box = $('#lista-modelos'); if (!box) return;
+    box.innerHTML = l.map(function (m, i) {
+      return '<div class="cartao-parc modelo"><div class="painel-topo" style="margin-bottom:10px"><b class="t-modelo">' + esc(m.titulo) + '</b>' + seloModelo(m.status) + '</div>' +
+        '<div class="bolha">' + previaModelo(m, 'Marina') + (m.botaoTexto ? '<span class="bolha-botao">' + esc(m.botaoTexto) + '</span>' : '') + '</div>' +
+        (m.motivo ? '<p class="suave" style="font-size:13px;margin-top:8px">Motivo da recusa: ' + esc(m.motivo) + '</p>' : '') +
+        '<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">' +
+          (m.status === 'Rascunho' || m.status === 'Recusado' ? '<button class="btn btn-verde btn-pequeno" type="button" data-aprovar="' + i + '">Mandar para aprovação</button>' : '') +
+          (m.status === 'Rascunho' || m.status === 'Recusado' ? '<button class="btn btn-linha btn-pequeno" type="button" data-editar-modelo="' + i + '">Editar</button>' : '') +
+        '</div></div>';
+    }).join('');
+    $$('[data-aprovar]', box).forEach(function (b) {
+      b.addEventListener('click', function () {
+        b.disabled = true; b.textContent = 'Mandando...';
+        Dados.aprovarModelo(l[+b.dataset.aprovar].id).then(function () { aviso('Modelo enviado para a Meta aprovar.'); preencherComunicados(); },
+          function (e) { b.disabled = false; b.textContent = 'Mandar para aprovação'; aviso('Não deu: ' + (e.detalhe || 'tente de novo') + '.'); });
+      });
+    });
+    $$('[data-editar-modelo]', box).forEach(function (b) { b.addEventListener('click', function () { janelaModelo(l[+b.dataset.editarModelo]); }); });
+  }, function () {});
+}
+
+function janelaModelo(m) {
+  var novo = !m;
+  m = m || { titulo: '', corpo: 'Olá, {{1}}. Aqui é a família Casa Oliveira. ', botaoTexto: 'Falar com a Casa Oliveira', botaoUrl: 'https://wa.me/' + CONFIG.whatsapp, categoria: 'MARKETING', idioma: 'pt_BR' };
+  abrirJanela(
+    '<span class="rotulo">' + (novo ? 'Novo modelo' : 'Editar modelo') + '</span><h2>O que a mensagem vai dizer?</h2>' +
+    '<form id="f-modelo" class="grade-form" style="margin-top:20px">' +
+      '<label class="campo inteiro"><span class="rotulo">Nome do modelo (só para vocês)</span><input class="entrada" name="titulo" required value="' + esc(m.titulo) + '" placeholder="Ex.: Lançamento na serra"></label>' +
+      '<label class="campo inteiro"><span class="rotulo">Mensagem</span><textarea class="entrada" name="corpo" rows="5" maxlength="1000" required>' + esc(m.corpo) + '</textarea>' +
+        '<small class="suave">Onde estiver {{1}} entra o primeiro nome da pessoa. A Meta não aceita a mensagem começando ou terminando com {{1}}.</small></label>' +
+      '<label class="campo"><span class="rotulo">Texto do botão</span><input class="entrada" name="botaoTexto" maxlength="25" value="' + esc(m.botaoTexto) + '"></label>' +
+      '<label class="campo"><span class="rotulo">Link do botão</span><input class="entrada" name="botaoUrl" value="' + esc(m.botaoUrl) + '"></label>' +
+      '<div class="campo inteiro"><span class="rotulo">Prévia</span><div class="bolha" id="previa-modelo"></div>' +
+        '<small class="suave">Todo comunicado ganha também o botão "Parar de receber". Quem tocar sai da lista sozinho.</small></div>' +
+      '<div class="fim inteiro">' + (novo ? '' : '<button class="btn btn-linha" type="button" id="remover">Apagar</button>') +
+        '<button class="btn btn-linha" type="button" data-fechar>Cancelar</button><button class="btn btn-verde" type="submit">Salvar modelo</button></div>' +
+    '</form>',
+    function (j) {
+      var f = $('#f-modelo', j);
+      function previa() {
+        var d = new FormData(f);
+        $('#previa-modelo', j).innerHTML = previaModelo({ corpo: d.get('corpo') }, 'Marina') + (d.get('botaoTexto') ? '<span class="bolha-botao">' + esc(d.get('botaoTexto')) + '</span>' : '') + '<span class="bolha-botao">Parar de receber</span>';
+      }
+      f.addEventListener('input', previa); previa();
+      f.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var d = new FormData(f);
+        m.titulo = d.get('titulo').trim(); m.corpo = d.get('corpo').trim(); m.botaoTexto = d.get('botaoTexto').trim(); m.botaoUrl = d.get('botaoUrl').trim();
+        if (!m.nomeMeta) m.nomeMeta = m.titulo.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '').slice(0, 60) + '_' + Date.now().toString(36);
+        Dados.salvarModelo(m).then(function () { fecharJanela(); aviso('Modelo salvo. Agora é mandar para aprovação.'); preencherComunicados(); }, function () { aviso('Não consegui salvar o modelo.'); });
+      });
+      var rm = $('#remover', j);
+      if (rm) rm.addEventListener('click', function () {
+        if (!rm.dataset.ok) { rm.dataset.ok = 1; rm.textContent = 'Toque de novo para apagar'; return; }
+        Dados.removerModelo(m.id).then(function () { fecharJanela(); preencherComunicados(); });
+      });
+    });
+}
+
+function janelaComunicado() {
+  Dados.modelos().then(function (ms) {
+    var aprovados = ms.filter(function (m) { return m.status === 'Aprovado'; });
+    var est = { etiquetas: [], etapas: [], modelo: aprovados[0] || null };
+    var tags = todasEtiquetas();
+    abrirJanela(
+      '<span class="rotulo">Novo comunicado</span><h2>Para quem e o quê?</h2>' +
+      '<div class="passo"><span class="rotulo">1. Nome do comunicado (só para vocês)</span><input class="entrada" id="c-titulo" placeholder="Ex.: Lançamento Makai, novembro"></div>' +
+      '<div class="passo"><span class="rotulo">2. Quem recebe</span>' +
+        '<small class="suave" style="display:block;margin-bottom:8px">Sem escolher nada, vai para todos que autorizaram. Escolhendo, vai para quem tem qualquer uma das etiquetas.</small>' +
+        '<div class="tags" id="c-tags">' + tags.map(function (t) { return '<button type="button" class="chip" data-ct="' + esc(t) + '">' + esc(t) + '</button>'; }).join('') + '</div>' +
+        '<div class="tags" id="c-etapas" style="margin-top:12px">' + ETAPAS.map(function (e) { return '<button type="button" class="chip" data-ce="' + esc(e) + '">' + esc(e) + '</button>'; }).join('') + '</div></div>' +
+      '<div class="passo"><span class="rotulo">3. Mensagem</span>' +
+        (aprovados.length ? '<div class="marcas" id="c-modelos">' + aprovados.map(function (m, i) {
+          return '<label class="marca"><input type="radio" name="modelo" value="' + i + '"' + (i === 0 ? ' checked' : '') + '>' + esc(m.titulo) + '</label>';
+        }).join('') + '</div><div class="bolha" id="c-previa" style="margin-top:12px"></div>' :
+        '<p class="suave">Nenhum modelo aprovado ainda. Crie um modelo e mande para aprovação da Meta.</p>') + '</div>' +
+      '<div class="resumo-com" id="c-resumo"></div>' +
+      '<div class="fim"><button class="btn btn-linha" type="button" data-fechar>Cancelar</button><button class="btn btn-wa" type="button" id="c-enviar">' + I.wa + 'Enviar</button></div>',
+      function (j) {
+        function pessoas() { return publico(est).filter(podeReceber); }
+        function atualizar() {
+          var todos = publico(est), ok = todos.filter(podeReceber), fora = todos.length - ok.length;
+          $('#c-resumo', j).innerHTML = '<div><b>' + ok.length + '</b><span>vão receber</span></div>' +
+            '<div><b>' + reais(ok.length * CUSTO_MSG) + '</b><span>custo aproximado</span></div>' +
+            (fora ? '<div><b>' + fora + '</b><span>ficam de fora, sem autorização</span></div>' : '');
+          if (est.modelo && $('#c-previa', j)) $('#c-previa', j).innerHTML = previaModelo(est.modelo, ok[0] ? ok[0].nome : 'Marina') +
+            (est.modelo.botaoTexto ? '<span class="bolha-botao">' + esc(est.modelo.botaoTexto) + '</span>' : '') + '<span class="bolha-botao">Parar de receber</span>';
+          var b = $('#c-enviar', j); delete b.dataset.ok;
+          var pode = ok.length && est.modelo && WA.conectado !== false;
+          b.disabled = !pode;
+          b.innerHTML = I.wa + (WA.conectado === false ? 'Conecte o WhatsApp oficial para enviar' : !est.modelo ? 'Falta um modelo aprovado' : 'Enviar para ' + ok.length + (ok.length === 1 ? ' pessoa' : ' pessoas'));
+        }
+        function alternar(lista, v) { var i = lista.indexOf(v); if (i >= 0) lista.splice(i, 1); else lista.push(v); }
+        $$('[data-ct]', j).forEach(function (b) { b.addEventListener('click', function () { alternar(est.etiquetas, b.dataset.ct); b.classList.toggle('ativo'); atualizar(); }); });
+        $$('[data-ce]', j).forEach(function (b) { b.addEventListener('click', function () { alternar(est.etapas, b.dataset.ce); b.classList.toggle('ativo'); atualizar(); }); });
+        $$('[name=modelo]', j).forEach(function (r) { r.addEventListener('change', function () { est.modelo = aprovados[+r.value]; atualizar(); }); });
+        atualizar();
+        var b = $('#c-enviar', j);
+        b.addEventListener('click', function () {
+          var ps = pessoas(); if (!ps.length || !est.modelo) return;
+          if (!b.dataset.ok) { b.dataset.ok = 1; b.innerHTML = I.wa + 'Toque de novo para enviar para ' + ps.length + ' pessoas'; return; }
+          b.disabled = true; b.textContent = 'Enviando...';
+          var titulo = $('#c-titulo', j).value.trim() || est.modelo.titulo + ' · ' + dataCurta(new Date().toISOString());
+          Dados.criarComunicado({ titulo: titulo, modeloId: est.modelo.id, filtro: { etiquetas: est.etiquetas, etapas: est.etapas } }, ps).then(function () {
+            fecharJanela(); aviso('Comunicado saindo para ' + ps.length + ' pessoas.'); render();
+          }, function (e) { b.disabled = false; aviso('Não deu: ' + ((e && e.detalhe) || 'tente de novo') + '.'); atualizar(); });
+        });
+      });
+  }, function () { aviso('Rode o passo 07 no Supabase antes.'); });
+}
+
+/* ---------- envio em sequência (pelo WhatsApp de sempre, sem custo) ---------- */
+function janelaSequencia() {
+  var est = { etiqueta: '', busca: '', sel: {}, imovel: '', passo: 1, fila: [], i: 0 };
+  var tags = todasEtiquetas();
+  var TXT = 'Olá, {nome}. Aqui é a família Casa Oliveira.\n\nFoi muito bom ter você com a gente. Como combinado, separamos o material para você:\n{material}\n\nQualquer dúvida, é só responder por aqui.';
+  abrirJanela('<div id="seq"></div>', function (j) {
+    var box = $('#seq', j);
+    function lista() {
+      var b = est.busca.toLowerCase(), nb = soNumeros(b);
+      return Dados.clientes().filter(function (c) {
+        if (soNumeros(c.whatsapp).length < 10) return false;
+        if (est.etiqueta && (c.etiquetas || []).indexOf(est.etiqueta) < 0) return false;
+        return !b || c.nome.toLowerCase().indexOf(b) >= 0 || (nb && soNumeros(c.whatsapp).indexOf(nb) >= 0);
+      });
+    }
+    function escolhidos() { return Dados.clientes().filter(function (c) { return est.sel[c.id]; }); }
+    function montar(c) {
+      var im = est.imovel && Dados.imovel(est.imovel);
+      return est.texto.replace(/\{nome\}/g, primeiroNome(c.nome)).replace(/\{material\}/g, im ? linkApresentacao(im) : '').replace(/\n{3,}/g, '\n\n').trim();
+    }
+    function passo1() {
+      var l = lista(), n = escolhidos().length;
+      box.innerHTML = '<span class="rotulo">Enviar em sequência · 1 de 2</span><h2>Para quem?</h2>' +
+        '<p class="suave" style="margin-top:6px">Sai pelo WhatsApp de sempre, sem custo. Cada pessoa recebe com o próprio nome.</p>' +
+        '<div class="passo"><input class="entrada" id="s-busca" placeholder="Buscar por nome ou telefone" value="' + esc(est.busca) + '">' +
+        (tags.length ? '<select class="entrada" id="s-tag" style="margin-top:10px"><option value="">Todas as etiquetas</option>' + tags.map(function (t) { return '<option' + (t === est.etiqueta ? ' selected' : '') + '>' + esc(t) + '</option>'; }).join('') + '</select>' : '') +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px"><small class="suave">' + l.length + ' na lista</small>' +
+          '<button type="button" class="link-suave" id="s-todos">Marcar os ' + Math.min(l.length, 50) + ' da lista</button></div>' +
+        '<div class="pessoas" style="max-height:300px">' + l.slice(0, 200).map(function (c) {
+          return '<label class="pessoa' + (est.sel[c.id] ? ' ativa' : '') + '"><input type="checkbox" data-s="' + esc(c.id) + '"' + (est.sel[c.id] ? ' checked' : '') + ' style="accent-color:var(--verde)">' +
+            avatarDe(c.nome) + '<div>' + esc(c.nome) + '<small>' + esc(telBonito(c.whatsapp)) + '</small></div></label>';
+        }).join('') + '</div></div>' +
+        '<div class="fim"><button class="btn btn-linha" type="button" data-fechar>Cancelar</button><button class="btn btn-verde" type="button" id="s-seguir"' + (n ? '' : ' disabled') + '>Seguir com ' + n + (n === 1 ? ' pessoa' : ' pessoas') + '</button></div>';
+      $('#s-busca', box).addEventListener('input', function (e) { est.busca = e.target.value; var p = e.target.selectionStart; passo1(); var x = $('#s-busca', box); x.focus(); x.setSelectionRange(p, p); });
+      var st = $('#s-tag', box); if (st) st.addEventListener('change', function () { est.etiqueta = st.value; passo1(); });
+      $('#s-todos', box).addEventListener('click', function () { l.slice(0, 50).forEach(function (c) { est.sel[c.id] = true; }); passo1(); });
+      $$('[data-s]', box).forEach(function (cb) { cb.addEventListener('change', function () { if (cb.checked) est.sel[cb.dataset.s] = true; else delete est.sel[cb.dataset.s]; passo1(); }); });
+      $('#s-seguir', box).addEventListener('click', passo2);
+      $('[data-fechar]', box).addEventListener('click', fecharJanela);
+    }
+    function passo2() {
+      est.texto = est.texto || TXT;
+      var ps = escolhidos();
+      box.innerHTML = '<span class="rotulo">Enviar em sequência · 2 de 2</span><h2>A mensagem</h2>' +
+        '<div class="passo"><span class="rotulo">Material (opcional)</span><select class="entrada" id="s-imovel"><option value="">Sem material</option>' +
+          Dados.imoveis().map(function (im) { return '<option value="' + esc(im.id) + '"' + (im.id === est.imovel ? ' selected' : '') + '>' + esc(im.nome) + '</option>'; }).join('') + '</select></div>' +
+        '<div class="passo"><span class="rotulo">Texto</span><textarea class="entrada" id="s-texto" rows="7">' + esc(est.texto) + '</textarea>' +
+          '<small class="suave">{nome} vira o primeiro nome. {material} vira o link da apresentação do imóvel.</small></div>' +
+        '<div class="passo"><span class="rotulo">Como fica para ' + esc(primeiroNome(ps[0].nome)) + '</span><div class="previa" id="s-previa"></div></div>' +
+        '<div class="fim"><button class="btn btn-linha" type="button" id="s-voltar">Voltar</button><button class="btn btn-wa" type="button" id="s-comecar">' + I.wa + 'Começar a enviar</button></div>';
+      function previa() { $('#s-previa', box).textContent = montar(ps[0]); }
+      $('#s-imovel', box).addEventListener('change', function (e) { est.imovel = e.target.value; previa(); });
+      $('#s-texto', box).addEventListener('input', function (e) { est.texto = e.target.value; previa(); });
+      previa();
+      $('#s-voltar', box).addEventListener('click', passo1);
+      $('#s-comecar', box).addEventListener('click', function () { est.fila = ps; est.i = 0; passo3(); });
+    }
+    function passo3() {
+      if (est.i >= est.fila.length) {
+        box.innerHTML = '<div style="text-align:center;padding:10px 0"><div class="ilustra-ok">' + I.folha + '</div><h2>Pronto!</h2><p class="suave" style="margin-top:8px">' + est.fila.length + ' mensagens preparadas.</p>' +
+          '<div class="fim" style="justify-content:center"><button class="btn btn-verde" type="button" data-fechar>Fechar</button></div></div>';
+        $('[data-fechar]', box).addEventListener('click', fecharJanela);
+        return;
+      }
+      var c = est.fila[est.i], msg = montar(c), pct = Math.round(est.i / est.fila.length * 100);
+      box.innerHTML = '<span class="rotulo">' + (est.i + 1) + ' de ' + est.fila.length + '</span>' +
+        '<div class="barra-com" style="max-width:none;margin:10px 0 18px"><i style="width:' + pct + '%"></i></div>' +
+        '<div class="ficha-cli" style="box-shadow:none;padding:0;margin:0 0 14px">' + avatarDe(c.nome) + '<div><h2>' + esc(c.nome) + '</h2><span class="suave">' + esc(telBonito(c.whatsapp)) + '</span></div></div>' +
+        '<div class="previa">' + esc(msg) + '</div>' +
+        '<div class="fim"><button class="btn btn-linha" type="button" id="s-pular">Pular</button>' +
+          '<a class="btn btn-wa" id="s-abrir" target="_blank" rel="noopener" href="' + esc(linkWa(c, msg)) + '">' + I.wa + 'Abrir WhatsApp de ' + esc(primeiroNome(c.nome)) + '</a></div>' +
+        '<p class="suave" style="font-size:13px;margin-top:12px;text-align:center">Aperte enviar no WhatsApp e volte aqui. A próxima pessoa já estará pronta.</p>';
+      $('#s-pular', box).addEventListener('click', function () { est.i++; passo3(); });
+      $('#s-abrir', box).addEventListener('click', function () {
+        Dados.anotar(c.id, 'Mensagem enviada em sequência' + (est.imovel ? ' com o material de ' + (Dados.imovel(est.imovel) || {}).nome : '') + '.').catch(function () {});
+        setTimeout(function () { est.i++; passo3(); }, 400);
+      });
+    }
+    passo1();
+  });
+}
+
+/* ============================================================
    EM BREVE
    ============================================================ */
 function telaBreve(id) {
@@ -1058,6 +1311,7 @@ function render() {
   else if (rota === 'imovel') { miolo = telaImovel(arg); atual = 'imoveis'; }
   else if (rota === 'clientes') miolo = telaClientes();
   else if (rota === 'parceiros') miolo = telaParceiros();
+  else if (rota === 'comunicados') miolo = telaComunicados();
   else if (rota === 'parceiro') { miolo = telaParceiro(arg); atual = 'parceiros'; }
   else if (rota === 'cliente') { miolo = telaCliente(arg); atual = 'clientes'; }
   else if (BREVE[rota]) miolo = telaBreve(rota);
@@ -1092,11 +1346,24 @@ function ligar(rota, arg) {
     });
   }
   if (rota === 'cliente') ligarCliente(arg);
+  $$('[data-sequencia]').forEach(function (b) { b.addEventListener('click', janelaSequencia); });
   $$('[data-convidar]').forEach(function (b) { b.addEventListener('click', janelaConvite); });
   $$('[data-ver-convite]').forEach(function (b) {
     b.addEventListener('click', function () { var c = Dados.convites().filter(function (x) { return x.id === b.dataset.verConvite; })[0]; if (c) janelaVerConvite(c); });
   });
   if (rota === 'parceiro') ligarParceiro(arg);
+  if (rota === 'comunicados') {
+    preencherComunicados();
+    $$('[data-novo-com]').forEach(function (b) { b.addEventListener('click', janelaComunicado); });
+    $$('[data-novo-modelo]').forEach(function (b) { b.addEventListener('click', function () { janelaModelo(null); }); });
+    $$('[data-atualizar-modelos]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        b.disabled = true;
+        Dados.atualizarModelos().then(function () { aviso('Status dos modelos atualizado.'); preencherComunicados(); b.disabled = false; },
+          function (e) { aviso('Não deu: ' + ((e && e.detalhe) || 'tente de novo') + '.'); b.disabled = false; });
+      });
+    });
+  }
   if (rota === 'imoveis') {
     preencherGrade();
     $('#busca').addEventListener('input', function (e) { filtro.busca = e.target.value; preencherGrade(); });

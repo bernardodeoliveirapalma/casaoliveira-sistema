@@ -63,6 +63,12 @@ var SEMENTE = {
       acessoAte: '2026-11-30', imoveis: ['arcari'], criadoEm: '2026-11-12T12:00:00Z' }
   ],
   convites: [],
+  modelos: [
+    { id: 'm1', nomeMeta: 'novidade_casa_oliveira', titulo: 'Novidade da curadoria', idioma: 'pt_BR', categoria: 'MARKETING',
+      corpo: 'Olá, {{1}}. Aqui é a família Casa Oliveira. Separamos uma novidade da nossa curadoria que tem a ver com o que você procura. Quer que a gente te mande os detalhes?',
+      botaoTexto: 'Falar com a Casa Oliveira', botaoUrl: 'https://wa.me/5548992228009', status: 'Aprovado' }
+  ],
+  comunicados: [],
   aberturas: [
     { parceiroId: 'p1', imovelId: 'makai', arquivo: 'Book Makai Beachfront', criadoEm: '2026-11-17T14:20:00Z' },
     { parceiroId: 'p1', imovelId: 'makai', arquivo: '', criadoEm: '2026-11-17T14:18:00Z' }
@@ -121,6 +127,7 @@ function DadosDemo() {
   var CHAVE = 'co_painel_v2', db, eu = null;
   try { db = JSON.parse(localStorage.getItem(CHAVE)); } catch (e) { db = null; }
   if (!db || !db.imoveis) db = JSON.parse(JSON.stringify(SEMENTE));
+  if (!db.modelos) { db.modelos = JSON.parse(JSON.stringify(SEMENTE.modelos)); db.comunicados = []; }
   if (!db.parceiros) { db.parceiros = JSON.parse(JSON.stringify(SEMENTE.parceiros)); db.convites = []; db.aberturas = SEMENTE.aberturas.slice(); }
   try { eu = JSON.parse(sessionStorage.getItem('co_eu')); } catch (e) {}
   function salvar() { try { localStorage.setItem(CHAVE, JSON.stringify(db)); } catch (e) {} }
@@ -147,6 +154,27 @@ function DadosDemo() {
     imovel: achar,
     parceiros: function () { return db.parceiros.slice(); },
     parceiro: parc,
+    whatsappStatus: function () { return Promise.resolve({ conectado: true, demo: true }); },
+    modelos: function () { return Promise.resolve(db.modelos.slice()); },
+    salvarModelo: function (m) {
+      if (!m.id) { m.id = 'm' + Date.now(); m.status = 'Rascunho'; db.modelos.push(m); }
+      else { var i = db.modelos.findIndex(function (x) { return x.id === m.id; }); if (i >= 0) db.modelos[i] = m; }
+      salvar(); return Promise.resolve(m);
+    },
+    removerModelo: function (id) { db.modelos = db.modelos.filter(function (m) { return m.id !== id; }); salvar(); return Promise.resolve(); },
+    aprovarModelo: function (id) {
+      var m = db.modelos.filter(function (x) { return x.id === id; })[0]; if (m) m.status = 'Em análise'; salvar();
+      setTimeout(function () { if (m) { m.status = 'Aprovado'; salvar(); } }, 4000);
+      return Promise.resolve();
+    },
+    atualizarModelos: function () { return Promise.resolve(); },
+    comunicados: function () { return Promise.resolve(db.comunicados.slice()); },
+    criarComunicado: function (c, pessoas) {
+      var n = pessoas.length, lidos = Math.round(n * 0.6), entregues = n - Math.round(n * 0.04);
+      var x = { id: 'cm' + Date.now(), titulo: c.titulo, modeloId: c.modeloId, filtro: c.filtro, total: n, status: 'Enviado',
+        criadoEm: new Date().toISOString(), criadoPor: eu ? eu.nome : '', enviados: n, entregues: entregues, lidos: lidos, falhas: n - entregues };
+      db.comunicados.unshift(x); salvar(); return Promise.resolve(x);
+    },
     convites: function () { return db.convites.filter(function (c) { return !c.usadoEm; }); },
     convidar: function (c) {
       c.id = 'cv' + Date.now(); c.criadoEm = new Date().toISOString(); db.convites.unshift(c); salvar(); return Promise.resolve(c);
@@ -296,6 +324,16 @@ function DadosSupabase() {
   }
   function achar(id) { return imoveis.filter(function (i) { return i.id === id; })[0] || null; }
   function equipe() { return eu && eu.papel === 'equipe'; }
+  function funcao(acao, id) {
+    return sb.functions.invoke('comunicados', { body: { acao: acao, id: id } }).then(function (r) {
+      if (r.error) {
+        return (r.error.context && r.error.context.json ? r.error.context.json() : Promise.resolve({})).then(function (b) {
+          var e = new Error('funcao'); e.detalhe = (b && b.erro) || r.error.message; throw e;
+        });
+      }
+      return r.data;
+    });
+  }
   function hoje() { var d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); }
   function enviar(im, arquivo, tipo, nome) {
     var ext = (arquivo.name || 'foto.jpg').split('.').pop().toLowerCase();
@@ -321,6 +359,37 @@ function DadosSupabase() {
         if (r.error) { var e = new Error('senha'); e.detalhe = r.error.message || String(r.error); throw e; }
         return carregarPerfil(r.data.user, nome).then(function (p) { return carregarTudo().then(function () { return p; }); });
       }).catch(function (e) { if (e.message === 'sem-acesso' || e.message === 'expirado') sb.auth.signOut(); throw e; });
+    },
+    whatsappStatus: function () {
+      return sb.functions.invoke('comunicados', { body: { acao: 'status' } }).then(function (r) { return r.error ? { conectado: false, semFuncao: true } : r.data; }, function () { return { conectado: false, semFuncao: true }; });
+    },
+    modelos: function () {
+      return sb.from('modelos').select('*').order('atualizado_em', { ascending: false }).then(falhou).then(function (l) {
+        return l.map(function (m) { return { id: m.id, nomeMeta: m.nome_meta, titulo: m.titulo, idioma: m.idioma, categoria: m.categoria, corpo: m.corpo, botaoTexto: m.botao_texto || '', botaoUrl: m.botao_url || '', status: m.status, motivo: m.motivo }; });
+      });
+    },
+    salvarModelo: function (m) {
+      var linha = { nome_meta: m.nomeMeta, titulo: m.titulo, idioma: m.idioma || 'pt_BR', categoria: m.categoria || 'MARKETING', corpo: m.corpo, botao_texto: m.botaoTexto || null, botao_url: m.botaoUrl || null, atualizado_em: new Date().toISOString() };
+      var q = m.id ? sb.from('modelos').update(linha).eq('id', m.id) : sb.from('modelos').insert(linha);
+      return q.then(falhou);
+    },
+    removerModelo: function (id) { return sb.from('modelos').delete().eq('id', id).then(falhou); },
+    aprovarModelo: function (id) { return funcao('aprovar_modelo', id); },
+    atualizarModelos: function () { return funcao('atualizar_modelos'); },
+    comunicados: function () {
+      return sb.from('comunicados_resumo').select('*').order('criado_em', { ascending: false }).limit(50).then(falhou).then(function (l) {
+        return l.map(function (c) { return { id: c.id, titulo: c.titulo, modeloId: c.modelo_id, filtro: c.filtro, total: c.total, status: c.status, criadoEm: c.criado_em,
+          enviados: c.enviados, entregues: c.entregues, lidos: c.lidos, falhas: c.falhas }; });
+      });
+    },
+    criarComunicado: function (c, pessoas) {
+      return sb.from('comunicados').insert({ titulo: c.titulo, modelo_id: c.modeloId, filtro: c.filtro, total: pessoas.length, criado_por: eu && eu.id }).select().single().then(falhou)
+        .then(function (cm) {
+          var linhas = pessoas.map(function (p) { return { comunicado_id: cm.id, cliente_id: p.id, nome: p.nome, whatsapp: p.whatsapp }; });
+          var lotes = []; for (var i = 0; i < linhas.length; i += 500) lotes.push(linhas.slice(i, i + 500));
+          return lotes.reduce(function (pr, l) { return pr.then(function () { return sb.from('envios').insert(l).then(falhou); }); }, Promise.resolve())
+            .then(function () { return funcao('enviar', cm.id); }).then(function () { return cm; });
+        });
     },
     parceiros: function () { return parceiros.slice(); },
     parceiro: function (id) { return parceiros.filter(function (x) { return x.id === id; })[0] || null; },
