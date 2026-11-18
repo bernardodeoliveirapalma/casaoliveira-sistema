@@ -9,6 +9,8 @@ var DEMO = !(CONFIG.supabaseUrl && CONFIG.supabaseAnonKey && window.supabase);
 
 var STATUS = ['Disponível', 'Lançamento', 'Em obras', 'Venda exclusiva', 'Pausado'];
 var TIPOS = ['Apartamentos', 'Condomínio de lotes', 'Casa', 'Comercial', 'Incorporadora'];
+var ETAPAS = ['Novo', 'Em conversa', 'Visita', 'Proposta', 'Cliente', 'Pausado'];
+var ORIGENS = ['Evento', 'Instagram', 'Anúncio', 'Site', 'Indicação', 'WhatsApp', 'Parceiro', 'Outro'];
 var TIPOS_DOC = { book: 'Book', tabela: 'Tabela', planta: 'Planta', memorial: 'Memorial', video: 'Vídeo', outro: 'Documento' };
 
 /* Os quatro empreendimentos abaixo vêm dos cartões da LP (casaoliveira.site).
@@ -55,9 +57,19 @@ var SEMENTE = {
   ],
   // Pessoas fictícias, só para testar o envio
   clientes: [
-    { id: 'c1', nome: 'Marina (exemplo)', whatsapp: '5548900000001', idioma: 'pt', etapa: 'Novo', origem: 'Instagram', etiquetas: ['Serra'] },
-    { id: 'c2', nome: 'Paulo (exemplo)', whatsapp: '5548900000002', idioma: 'pt', etapa: 'Em conversa', origem: 'Site', etiquetas: ['Praia', 'Investidor'] },
-    { id: 'c3', nome: 'Julia (exemplo)', whatsapp: '5548900000003', idioma: 'en', etapa: 'Visita', origem: 'Anúncio', etiquetas: ['Praia'] }
+    { id: 'c1', nome: 'Marina (exemplo)', whatsapp: '5548900000001', email: '', idioma: 'pt', etapa: 'Novo', origem: 'Instagram', etiquetas: ['Serra'],
+      aceitaWhatsapp: true, aceitaEmail: false, lembrarEm: null, criadoEm: '2026-11-18T12:00:00Z',
+      respostas: { 'O que procura': 'Casa de campo', 'Prazo': 'Até 6 meses' }, notas: [] },
+    { id: 'c2', nome: 'Paulo (exemplo)', whatsapp: '5548900000002', email: '', idioma: 'pt', etapa: 'Em conversa', origem: 'Site', etiquetas: ['Praia', 'Investidor'],
+      aceitaWhatsapp: true, aceitaEmail: true, lembrarEm: '2026-11-18', criadoEm: '2026-11-15T12:00:00Z', respostas: null,
+      notas: [{ texto: 'Gostou do Makai. Quer ver a planta do duplex.', autor: 'Bernardo', criadoEm: '2026-11-16T15:00:00Z' }] },
+    { id: 'c3', nome: 'Julia (exemplo)', whatsapp: '5548900000003', email: '', idioma: 'en', etapa: 'Visita', origem: 'Anúncio', etiquetas: ['Praia'],
+      aceitaWhatsapp: true, aceitaEmail: false, lembrarEm: null, criadoEm: '2026-11-10T12:00:00Z', respostas: null, notas: [] },
+    { id: 'c4', nome: 'Rafael (exemplo)', whatsapp: '5548900000004', email: '', idioma: 'pt', etapa: 'Proposta', origem: 'Indicação', etiquetas: ['Serra', 'Investidor'],
+      aceitaWhatsapp: true, aceitaEmail: false, lembrarEm: '2026-11-20', criadoEm: '2026-11-02T12:00:00Z', respostas: null, notas: [] },
+    { id: 'c5', nome: 'Helena (exemplo)', whatsapp: '5548900000005', email: '', idioma: 'pt', etapa: 'Novo', origem: 'Anúncio', etiquetas: [],
+      aceitaWhatsapp: false, aceitaEmail: false, lembrarEm: null, criadoEm: '2026-11-18T09:00:00Z',
+      respostas: { 'O que procura': 'Apartamento na praia', 'Prazo': 'Só pesquisando' }, notas: [] }
   ]
 };
 
@@ -95,7 +107,7 @@ function blobParaDataUrl(b) {
    MODO DEMONSTRAÇÃO
    ============================================================ */
 function DadosDemo() {
-  var CHAVE = 'co_painel_v1', db, eu = null;
+  var CHAVE = 'co_painel_v2', db, eu = null;
   try { db = JSON.parse(localStorage.getItem(CHAVE)); } catch (e) { db = null; }
   if (!db || !db.imoveis) db = JSON.parse(JSON.stringify(SEMENTE));
   try { eu = JSON.parse(sessionStorage.getItem('co_eu')); } catch (e) {}
@@ -115,6 +127,19 @@ function DadosDemo() {
     imoveis: function () { return db.imoveis.slice(); },
     imovel: achar,
     clientes: function () { return db.clientes.slice(); },
+    cliente: function (id) { return db.clientes.filter(function (c) { return c.id === id; })[0] || null; },
+    salvarCliente: function (c) {
+      if (!c.id) { c.id = 'c' + Date.now(); c.criadoEm = new Date().toISOString(); c.notas = []; db.clientes.unshift(c); }
+      else { var i = db.clientes.findIndex(function (x) { return x.id === c.id; }); if (i >= 0) db.clientes[i] = c; }
+      salvar(); return Promise.resolve(c);
+    },
+    removerCliente: function (id) { db.clientes = db.clientes.filter(function (c) { return c.id !== id; }); salvar(); return Promise.resolve(); },
+    anotacoes: function (id) { var c = this.cliente(id); return Promise.resolve(c && c.notas ? c.notas.slice().reverse() : []); },
+    anotar: function (id, texto) {
+      var c = this.cliente(id); c.notas = c.notas || [];
+      c.notas.push({ texto: texto, autor: eu ? eu.nome : '', criadoEm: new Date().toISOString() }); salvar();
+      return Promise.resolve();
+    },
     salvarImovel: function (im) {
       if (!im.id) { im.id = slug(im.nome, achar); db.imoveis.unshift(im); }
       else {
@@ -167,6 +192,16 @@ function DadosSupabase() {
     };
   }
   function falhou(r) { if (r.error) throw r.error; return r.data; }
+  function clienteDeLinha(c) {
+    return { id: c.id, nome: c.nome, whatsapp: c.whatsapp || '', email: c.email || '', idioma: c.idioma, etapa: c.etapa, origem: c.origem || '',
+      etiquetas: c.etiquetas || [], aceitaWhatsapp: c.aceita_whatsapp, aceitaEmail: c.aceita_email, lembrarEm: c.lembrar_em,
+      respostas: c.respostas_quiz, utm: c.utm, criadoEm: c.criado_em };
+  }
+  function clienteParaLinha(c) {
+    return { nome: c.nome, whatsapp: c.whatsapp || null, email: c.email || null, idioma: c.idioma || 'pt', etapa: c.etapa || 'Novo',
+      origem: c.origem || null, etiquetas: c.etiquetas || [], aceita_whatsapp: !!c.aceitaWhatsapp, aceita_email: !!c.aceitaEmail,
+      lembrar_em: c.lembrarEm || null };
+  }
 
   function carregarTudo() {
     return Promise.all([
@@ -175,7 +210,7 @@ function DadosSupabase() {
       sb.from('clientes').select('*').order('criado_em', { ascending: false })
     ]).then(function (rs) {
       var ims = falhou(rs[0]), arqs = falhou(rs[1]), cls = falhou(rs[2]);
-      clientes = cls.map(function (c) { return { id: c.id, nome: c.nome, whatsapp: c.whatsapp || '', idioma: c.idioma, etapa: c.etapa, origem: c.origem || '', etiquetas: c.etiquetas || [] }; });
+      clientes = cls.map(clienteDeLinha);
       var caminhos = arqs.filter(function (a) { return a.tipo === 'foto'; }).map(function (a) { return a.caminho; });
       var p = caminhos.length ? sb.storage.from(BUCKET).createSignedUrls(caminhos, 60 * 60 * 12) : Promise.resolve({ data: [] });
       return p.then(function (r) {
@@ -231,6 +266,24 @@ function DadosSupabase() {
     imoveis: function () { return imoveis.slice(); },
     imovel: achar,
     clientes: function () { return clientes.slice(); },
+    cliente: function (id) { return clientes.filter(function (c) { return c.id === id; })[0] || null; },
+    salvarCliente: function (c) {
+      var q = c.id ? sb.from('clientes').update(clienteParaLinha(c)).eq('id', c.id).select().single()
+                   : sb.from('clientes').insert(clienteParaLinha(c)).select().single();
+      return q.then(falhou).then(function (linha) {
+        var novo = clienteDeLinha(linha), i = clientes.findIndex(function (x) { return x.id === novo.id; });
+        if (i >= 0) clientes[i] = novo; else clientes.unshift(novo);
+        return novo;
+      });
+    },
+    removerCliente: function (id) {
+      return sb.from('clientes').delete().eq('id', id).then(falhou).then(function () { clientes = clientes.filter(function (c) { return c.id !== id; }); });
+    },
+    anotacoes: function (id) {
+      return sb.from('anotacoes').select('texto, criado_em, perfis(nome)').eq('cliente_id', id).order('criado_em', { ascending: false })
+        .then(falhou).then(function (l) { return l.map(function (a) { return { texto: a.texto, criadoEm: a.criado_em, autor: a.perfis ? a.perfis.nome : '' }; }); });
+    },
+    anotar: function (id, texto) { return sb.from('anotacoes').insert({ cliente_id: id, texto: texto, autor: eu && eu.id }).then(falhou); },
     salvarImovel: function (im) {
       var novo = !im.id;
       if (novo) im.id = slug(im.nome, achar);

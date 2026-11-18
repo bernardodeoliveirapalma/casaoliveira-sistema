@@ -308,6 +308,50 @@ select.entrada { appearance: none; background-image: url("data:image/svg+xml,%3C
 .entra > *:nth-child(4) { animation-delay: .15s; } .entra > *:nth-child(5) { animation-delay: .2s; }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 
+/* ---------- Clientes ---------- */
+.quadro { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(250px, 1fr); gap: 14px; overflow-x: auto; padding-bottom: 12px; align-items: start; scroll-snap-type: x proximity; }
+.coluna { background: var(--creme-2); border-radius: var(--r-grande); border: 1px solid var(--linha); min-height: 220px; transition: border .2s, background .2s; scroll-snap-align: start; }
+.coluna.alvo { border-color: var(--verde); background: var(--t-verde); }
+.coluna header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-radius: 22px 22px 0 0; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--verde-escuro); }
+.conta-n { background: rgba(255,255,255,.7); border-radius: 12px; min-width: 28px; height: 24px; display: inline-grid; place-items: center; padding: 0 8px; font-size: 12px; letter-spacing: 0; }
+.cartoes { display: flex; flex-direction: column; gap: 10px; padding: 12px; }
+.mais-cli { font-size: 13px; text-align: center; padding: 8px 4px; }
+.cli { display: block; background: var(--branco); border-radius: var(--r-medio); padding: 14px; text-decoration: none; box-shadow: var(--sombra); cursor: grab; transition: transform .15s, opacity .2s; }
+.cli:hover { transform: translateY(-2px); }
+.cli.arrastando { opacity: .4; }
+.cli-topo { display: flex; gap: 12px; align-items: center; }
+.cli-topo .avatar, .linha-cli .avatar { width: 38px; height: 38px; font-size: 18px; flex: none; }
+.cli-nome { min-width: 0; flex: 1; }
+.cli-nome > div { color: var(--verde-escuro); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cli-nome small { display: block; color: var(--marrom-claro); font-size: 12px; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.tag { display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 12px; background: var(--t-musgo); color: var(--verde); font-size: 12px; border: 0; font-family: inherit; font-weight: 300; }
+.tag.tira { cursor: pointer; height: 32px; padding: 0 12px; font-size: 13px; }
+.tag.tira:hover { background: var(--t-terra); color: var(--marrom); }
+.lembrete { display: flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 12px; color: var(--marrom-claro); }
+.lembrete svg { width: 16px; height: 16px; }
+.lembrete.urgente { color: #8A4B1E; }
+.conta-lista { font-size: 13px; margin-bottom: 8px; }
+.lista-cli { background: var(--branco); border-radius: var(--r-grande); box-shadow: var(--sombra); overflow: hidden; }
+.linha-cli { display: flex; align-items: center; gap: 14px; padding: 12px 18px; text-decoration: none; border-bottom: 1px solid var(--creme); transition: background .15s; }
+.linha-cli:last-child { border-bottom: 0; }
+.linha-cli:hover { background: var(--creme-2); }
+.ficha-cli { display: flex; gap: 20px; align-items: center; background: var(--branco); border-radius: 28px; padding: 24px; box-shadow: var(--sombra); margin-bottom: 18px; }
+.avatar.grande { width: 84px; height: 84px; font-size: 40px; flex: none; }
+.ficha-cli h1 { margin: 4px 0 12px; }
+.etapas { display: flex; flex-wrap: wrap; gap: 8px; }
+.etapas .chip { height: 38px; }
+.nota-nova { display: flex; gap: 10px; align-items: flex-end; }
+.nota-nova textarea { min-height: 72px; resize: vertical; }
+.nota-nova .entrada { flex: 1; }
+.notas { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+.nota { background: var(--creme-2); border-radius: 14px; padding: 12px 14px; }
+.nota small { display: block; color: var(--marrom-claro); font-size: 12px; margin-bottom: 4px; }
+.nota p { white-space: pre-wrap; }
+.dados-cli { display: grid; gap: 12px; }
+.dados-cli > div { word-break: break-word; }
+.dados-cli small { display: block; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--marrom-claro); }
+
 /* ---------- Celular ---------- */
 @media (max-width: 1023px) {
   .lateral { display: none; }
@@ -337,10 +381,19 @@ select.entrada { appearance: none; background-image: url("data:image/svg+xml,%3C
   .capa .sobre { left: 20px; right: 20px; bottom: 20px; }
   .duas { grid-template-columns: 1fr; }
   .acoes-imovel .btn { flex: 1 1 100%; }
+  .acoes-imovel .btn-redondo { flex: 0 0 56px; margin: 0 auto; }
   .grade-form { grid-template-columns: 1fr; }
   .janela { padding: 22px 18px; border-radius: 24px; }
   .fundo { align-items: flex-end; padding: 0; }
   .janela { max-height: 92vh; border-radius: 28px 28px 0 0; }
   .topo .btn { width: 100%; }
+  .quadro { grid-auto-columns: 82%; margin: 0 -16px; padding: 0 16px 12px; scroll-padding: 0 16px; }
+  .so-pc { display: none; }
+  .linha-tags { flex-wrap: nowrap; overflow-x: auto; margin-left: -16px; margin-right: -16px; padding: 0 16px 4px; scrollbar-width: none; }
+  .linha-tags .chip { flex: none; }
+  .ficha-cli { flex-direction: column; text-align: center; padding: 22px 16px; }
+  .ficha-cli .etapas { justify-content: center; }
+  .nota-nova { flex-direction: column; align-items: stretch; }
+  .linha-cli { padding: 12px 14px; }
 }
 @media (min-width: 1024px) { .topo-celular { display: none; } }

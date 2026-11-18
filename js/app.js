@@ -13,6 +13,11 @@ function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function
 function classeStatus(s) { return 's-' + String(s).replace(/\s+/g, '-'); }
 function primeiroNome(n) { return String(n || '').replace(/\s*\(.*\)\s*/, '').split(' ')[0]; }
 function soNumeros(s) { return String(s || '').replace(/\D/g, ''); }
+function telBonito(n) {
+  var d = soNumeros(n); if (!d) return '';
+  var m = d.match(/^55(\d{2})(\d{4,5})(\d{4})$/);
+  return m ? '+55 ' + m[1] + ' ' + m[2] + '-' + m[3] : '+' + d;
+}
 
 /* ---------- ícones (traço fino, combinam com a Jost 300) ---------- */
 var I = {
@@ -31,6 +36,7 @@ var I = {
   link: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>',
   olho: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>',
   baixar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>',
+  sino: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15Z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg>',
   wa: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2c-1.5 0-3-.4-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.2.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.8 11.9 11.9 0 0 0 4.6 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2l-.5-.2Z"/></svg>',
   folha: '<svg viewBox="0 0 32 32" fill="none"><path d="M6 26C6 14 14 6 27 5c0 13-8 21-21 21Z" fill="#9DB08A"/><path d="M6 26 19 13" stroke="#F2F0EB" stroke-width="1.4" stroke-linecap="round"/></svg>',
   ramo: '<svg class="ramo" viewBox="0 0 200 200" fill="none" stroke="#F2F0EB" stroke-width="2" stroke-linecap="round"><path d="M20 190C70 140 110 90 190 20"/><path d="M60 150c-20-8-34-24-38-44 20 4 34 20 38 44Z" fill="#F2F0EB"/><path d="M60 150c8-20 24-32 44-34-6 20-22 32-44 34Z" fill="#F2F0EB"/><path d="M105 102c-20-8-34-24-38-44 20 4 34 20 38 44Z" fill="#F2F0EB"/><path d="M105 102c8-20 24-32 44-34-6 20-22 32-44 34Z" fill="#F2F0EB"/><path d="M148 58c-16-8-26-20-30-36 16 4 26 16 30 36Z" fill="#F2F0EB"/><path d="M148 58c8-16 20-26 36-28-6 16-18 26-36 28Z" fill="#F2F0EB"/></svg>'
@@ -40,15 +46,13 @@ var I = {
 var MENU = [
   { id: 'hoje', nome: 'Hoje', ic: 'hoje' },
   { id: 'imoveis', nome: 'Imóveis', ic: 'casa' },
-  { id: 'clientes', nome: 'Clientes', ic: 'pessoas', etapa: 2 },
+  { id: 'clientes', nome: 'Clientes', ic: 'pessoas' },
   { id: 'parceiros', nome: 'Parceiros', ic: 'parceiro', etapa: 3 },
   { id: 'comunicados', nome: 'Comunicados', ic: 'megafone', etapa: 4 },
   { id: 'email', nome: 'E-mail', ic: 'carta', etapa: 5 }
 ];
 
 var BREVE = {
-  clientes: { titulo: 'Clientes e leads', texto: 'Todas as pessoas da Casa Oliveira num lugar só, separadas por etapa e etiqueta.',
-    itens: ['Leads do quiz da LP entram sozinhos, com a origem marcada', 'Quadro por etapa: novo, em conversa, visita, proposta, cliente', 'Etiquetas, anotações e lembretes de retorno', 'Importar contatos de uma planilha'] },
   parceiros: { titulo: 'Portal de parceiros', texto: 'Corretores parceiros com acesso só aos empreendimentos que vocês liberarem.',
     itens: ['Convite por e-mail, com login próprio', 'Escolher os empreendimentos de cada parceiro', 'Fotos e PDFs com marca d\'água e nome do corretor', 'Acesso com data para expirar e aviso de quem abriu'] },
   comunicados: { titulo: 'Comunicados de WhatsApp', texto: 'Mensagens para um grupo inteiro, na hora ou agendadas, pela API oficial da Meta.',
@@ -168,19 +172,33 @@ function telaHoje() {
   var docs = ims.reduce(function (s, i) { return s + i.docs.length; }, 0);
   var fotos = ims.reduce(function (s, i) { return s + i.fotos.length; }, 0);
   var data = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+  var cls = Dados.clientes(), h = hojeISO(), semana = maisDias(-7);
+  var retornos = cls.filter(function (c) { return c.lembrarEm && c.lembrarEm <= h; }).sort(function (a, b) { return a.lembrarEm < b.lembrarEm ? -1 : 1; });
+  var novos = cls.filter(function (c) { return c.etapa === 'Novo' && c.criadoEm && c.criadoEm.slice(0, 10) >= semana && !(c.respostas && c.respostas['Importado de']); });
+  function linhaHoje(c, extra) {
+    return '<a class="linha-cli" href="#/cliente/' + encodeURIComponent(c.id) + '"><span class="avatar' + (c.idioma === 'en' ? ' ane' : '') + '">' + esc((primeiroNome(c.nome) || '?')[0]) + '</span>' +
+      '<div class="cli-nome"><div>' + esc(c.nome) + '</div><small>' + esc(extra) + '</small></div><span class="selo" style="background:' + (COR_ETAPA[c.etapa] || 'var(--creme)') + '">' + esc(c.etapa) + '</span></a>';
+  }
+  var resumo = retornos.length || novos.length ?
+    'Hoje tem ' + [retornos.length ? retornos.length + (retornos.length > 1 ? ' retornos combinados' : ' retorno combinado') : '', novos.length ? novos.length + (novos.length > 1 ? ' leads novos na semana' : ' lead novo na semana') : ''].filter(Boolean).join(' e ') + '.' :
+    'Nenhum retorno para hoje. Bom dia para cadastrar imóveis ou chamar alguém da base.';
   return '<div class="entra">' +
     '<section class="ola"><span class="rotulo">' + esc(data) + '</span><h1>' + saudacao() + ', ' + esc(EU.nome) + '</h1>' +
-      '<p>Aqui fica o resumo do dia. Quando os clientes chegarem na etapa 2, os leads novos e os retornos combinados aparecem neste quadro.</p>' + I.ramo + '</section>' +
+      '<p>' + esc(resumo) + '</p>' + I.ramo + '</section>' +
     '<div class="blocos">' +
       '<div class="bloco c1"><span class="rotulo">Imóveis</span><div class="numero">' + ims.length + '</div><span class="suave">cadastrados no painel</span></div>' +
-      '<div class="bloco c2"><span class="rotulo">Fotos</span><div class="numero">' + fotos + '</div><span class="suave">prontas para enviar</span></div>' +
-      '<div class="bloco c3"><span class="rotulo">Documentos</span><div class="numero">' + docs + '</div><span class="suave">books, plantas e tabelas</span></div>' +
+      '<div class="bloco c2"><span class="rotulo">Clientes</span><div class="numero">' + cls.length + '</div><span class="suave">pessoas na base</span></div>' +
+      '<div class="bloco c3"><span class="rotulo">Material</span><div class="numero">' + (fotos + docs) + '</div><span class="suave">' + fotos + ' fotos e ' + docs + ' documentos</span></div>' +
     '</div>' +
+    (retornos.length ? '<span class="rotulo" style="display:block;margin-bottom:12px">Para retornar</span><div class="lista-cli" style="margin-bottom:28px">' +
+      retornos.slice(0, 8).map(function (c) { return linhaHoje(c, retornoTexto(c)); }).join('') + '</div>' : '') +
+    (novos.length ? '<span class="rotulo" style="display:block;margin-bottom:12px">Chegaram esta semana</span><div class="lista-cli" style="margin-bottom:28px">' +
+      novos.slice(0, 6).map(function (c) { return linhaHoje(c, (c.origem || 'Sem origem') + ' · ' + quando(c.criadoEm)); }).join('') + '</div>' : '') +
     '<span class="rotulo" style="display:block;margin-bottom:12px">O que vamos fazer agora</span>' +
     '<div class="atalhos">' +
       '<a class="atalho" data-novo-imovel><span class="ic">' + I.mais + '</span><span>Novo imóvel</span><small>Fotos, documentos e ficha</small></a>' +
       '<a class="atalho" href="#/imoveis"><span class="ic" style="background:#E7F0E1;color:#2F6B43">' + I.wa + '</span><span>Enviar material</span><small>Escolha o imóvel e o cliente</small></a>' +
-      '<a class="atalho" href="#/clientes"><span class="ic" style="background:var(--t-areia);color:#6A4A12">' + I.pessoas + '</span><span>Clientes</span><small>Chega na etapa 2</small></a>' +
+      '<a class="atalho" href="#/clientes"><span class="ic" style="background:var(--t-areia);color:#6A4A12">' + I.pessoas + '</span><span>Clientes</span><small>Base, etapas e etiquetas</small></a>' +
       '<a class="atalho" href="#/comunicados"><span class="ic" style="background:var(--t-terra);color:var(--marrom)">' + I.megafone + '</span><span>Comunicados</span><small>Chega na etapa 4</small></a>' +
     '</div></div>';
 }
@@ -286,15 +304,15 @@ function mensagem(im, pessoa, idioma, docsSel) {
     '\n\nQualquer dúvida, seguimos por aqui.\n' + CONFIG.assinatura;
 }
 
-function janelaEnviar(im) {
+function janelaEnviar(im, pessoaInicial) {
   var clientes = Dados.clientes();
-  var est = { pessoa: null, numero: '', idioma: 'pt', docs: im.docs.map(function () { return true; }) };
+  var est = { pessoa: pessoaInicial || null, numero: '', idioma: (pessoaInicial && pessoaInicial.idioma) || 'pt', docs: im.docs.map(function () { return true; }) };
   abrirJanela(
     '<span class="rotulo">Enviar pelo WhatsApp</span><h2>' + esc(im.nome) + '</h2>' +
     '<div class="passo"><span class="rotulo">1. Para quem</span>' +
       '<input class="entrada" id="w-busca" placeholder="Nome do cliente ou número com DDD">' +
       '<div class="pessoas" id="w-pessoas"></div></div>' +
-    '<div class="passo"><span class="rotulo">2. Idioma</span><div class="idiomas" id="w-idioma"><button type="button" data-l="pt" class="ativo">Português</button><button type="button" data-l="en">English</button></div></div>' +
+    '<div class="passo"><span class="rotulo">2. Idioma</span><div class="idiomas" id="w-idioma"><button type="button" data-l="pt"' + (est.idioma === 'pt' ? ' class="ativo"' : '') + '>Português</button><button type="button" data-l="en"' + (est.idioma === 'en' ? ' class="ativo"' : '') + '>English</button></div></div>' +
     '<div class="passo"><span class="rotulo">3. O que vai junto</span><div class="marcas">' +
       im.docs.map(function (d, i) { return '<label class="marca"><input type="checkbox" data-doc="' + i + '" checked>' + esc(d.nome) + '</label>'; }).join('') +
       '<label class="marca"><input type="checkbox" checked disabled>Fotos (' + im.fotos.length + ')</label>' +
@@ -306,7 +324,9 @@ function janelaEnviar(im) {
       function pintarPessoas() {
         var q = $('#w-busca', j).value.trim().toLowerCase();
         var nums = soNumeros(q);
-        var l = clientes.filter(function (c) { return !q || c.nome.toLowerCase().indexOf(q) >= 0 || (nums && c.whatsapp.indexOf(nums) >= 0); });
+        var l = clientes.filter(function (c) { return !q || c.nome.toLowerCase().indexOf(q) >= 0 || (nums && (c.whatsapp || '').indexOf(nums) >= 0); });
+        if (est.pessoa) l = [est.pessoa].concat(l.filter(function (c) { return c.id !== est.pessoa.id; }));
+        l = l.slice(0, 30);
         var html = l.map(function (c) {
           return '<div class="pessoa' + (est.pessoa && est.pessoa.id === c.id ? ' ativa' : '') + '" data-c="' + c.id + '"><span class="avatar">' + esc(c.nome[0]) + '</span>' +
             '<div>' + esc(c.nome) + '<small>' + esc(c.etapa) + ' · ' + esc(c.origem) + '</small></div></div>';
@@ -389,6 +409,260 @@ function janelaImovel(im) {
 }
 
 /* ============================================================
+   CLIENTES E LEADS
+   ============================================================ */
+var filtroCli = { busca: '', etiqueta: '', vista: 'quadro', limite: 100 };
+var POR_COLUNA = 30;
+try { filtroCli.vista = localStorage.getItem('co_vista') || 'quadro'; } catch (e) {}
+var COR_ETAPA = { 'Novo': 'var(--t-verde)', 'Em conversa': 'var(--t-areia)', 'Visita': 'var(--t-ceu)', 'Proposta': 'var(--t-terra)', 'Cliente': '#D6E3C9', 'Pausado': '#E9E4DC' };
+
+function hojeISO() { var d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); }
+function maisDias(n) { var d = new Date(); d.setDate(d.getDate() + n); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); }
+function dataCurta(iso) { if (!iso) return ''; var d = new Date(iso.length === 10 ? iso + 'T12:00:00' : iso); return d.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' }); }
+function quando(iso) {
+  if (!iso) return '';
+  var dias = Math.round((new Date(hojeISO() + 'T12:00:00') - new Date(iso.slice(0, 10) + 'T12:00:00')) / 864e5);
+  return dias <= 0 ? 'hoje' : dias === 1 ? 'ontem' : 'há ' + dias + ' dias';
+}
+function retornoTexto(c) {
+  if (!c.lembrarEm) return '';
+  var h = hojeISO();
+  return c.lembrarEm < h ? 'Retorno atrasado' : c.lembrarEm === h ? 'Retorno hoje' : 'Retorno ' + dataCurta(c.lembrarEm);
+}
+function todasEtiquetas() {
+  var m = {};
+  Dados.clientes().forEach(function (c) { (c.etiquetas || []).forEach(function (t) { m[t] = 1; }); });
+  return Object.keys(m).sort();
+}
+function msgOla(c) {
+  var n = primeiroNome(c.nome);
+  return c.idioma === 'en' ? 'Hello' + (n ? ', ' + n : '') + '. This is Casa Oliveira.' : 'Olá' + (n ? ', ' + n : '') + '. Aqui é a família Casa Oliveira.';
+}
+function linkWa(c, texto) {
+  var num = soNumeros(c.whatsapp); if (num && num.length <= 11) num = '55' + num;
+  return 'https://wa.me/' + num + '?text=' + encodeURIComponent(texto || msgOla(c));
+}
+function clientesFiltrados() {
+  var b = filtroCli.busca.toLowerCase(), nb = soNumeros(b);
+  return Dados.clientes().filter(function (c) {
+    if (filtroCli.etiqueta && (c.etiquetas || []).indexOf(filtroCli.etiqueta) < 0) return false;
+    if (!b) return true;
+    return [c.nome, c.email, c.origem].concat(c.etiquetas || []).join(' ').toLowerCase().indexOf(b) >= 0 || (nb && soNumeros(c.whatsapp).indexOf(nb) >= 0);
+  });
+}
+function cartaoCliente(c) {
+  var r = retornoTexto(c), atraso = c.lembrarEm && c.lembrarEm <= hojeISO();
+  return '<a class="cli" draggable="true" data-cli="' + esc(c.id) + '" href="#/cliente/' + encodeURIComponent(c.id) + '">' +
+    '<div class="cli-topo"><span class="avatar' + (c.idioma === 'en' ? ' ane' : '') + '">' + esc((primeiroNome(c.nome) || '?')[0]) + '</span>' +
+      '<div class="cli-nome"><div>' + esc(c.nome) + '</div><small>' + esc(c.origem || 'Sem origem') + ' · ' + quando(c.criadoEm) + '</small></div></div>' +
+    ((c.etiquetas || []).length ? '<div class="tags">' + c.etiquetas.map(function (t) { return '<span class="tag">' + esc(t) + '</span>'; }).join('') + '</div>' : '') +
+    (r ? '<div class="lembrete' + (atraso ? ' urgente' : '') + '">' + I.sino + esc(r) + '</div>' : '') +
+  '</a>';
+}
+function telaClientes() {
+  var tags = todasEtiquetas();
+  return '<div class="entra">' +
+    '<div class="topo"><div><span class="rotulo">Base da Casa Oliveira</span><h1>Clientes e leads</h1></div>' +
+      '<div class="topo-acoes"><button class="btn btn-verde" type="button" data-novo-cliente>' + I.mais + 'Novo cliente</button></div></div>' +
+    '<div class="filtros"><label class="busca">' + I.lupa + '<input class="entrada" id="busca-cli" placeholder="Buscar por nome, telefone ou etiqueta" value="' + esc(filtroCli.busca) + '"></label>' +
+      '<div class="idiomas" id="vista"><button type="button" data-v="quadro" class="' + (filtroCli.vista === 'quadro' ? 'ativo' : '') + '">Quadro</button><button type="button" data-v="lista" class="' + (filtroCli.vista === 'lista' ? 'ativo' : '') + '">Lista</button></div>' +
+    '</div>' +
+    (tags.length ? '<div class="filtros linha-tags" style="margin-top:-10px">' + ['Todas'].concat(tags).map(function (t) {
+      var v = t === 'Todas' ? '' : t;
+      return '<button type="button" class="chip' + (filtroCli.etiqueta === v ? ' ativo' : '') + '" data-tag="' + esc(v) + '">' + esc(t) + '</button>';
+    }).join('') + '</div>' : '') +
+    '<div id="area-cli"></div></div>';
+}
+function preencherClientes() {
+  var area = $('#area-cli'); if (!area) return;
+  var l = clientesFiltrados();
+  if (!Dados.clientes().length) {
+    area.innerHTML = '<div class="breve-tela"><div class="ilustra">' + I.pessoas + '</div><h2>Ainda não há ninguém aqui</h2>' +
+      '<p class="suave">Quando alguém responder o quiz da LP, aparece aqui sozinho. Você também pode cadastrar à mão.</p>' +
+      '<button class="btn btn-verde" style="margin-top:20px" type="button" data-novo-cliente>' + I.mais + 'Cadastrar o primeiro</button></div>';
+    return;
+  }
+  if (filtroCli.vista === 'lista') {
+    var total = l.length; l = l.slice(0, filtroCli.limite);
+    area.innerHTML = '<p class="suave conta-lista">' + total + (total === 1 ? ' pessoa' : ' pessoas') + '</p><div class="lista-cli">' + (l.length ? l.map(function (c) {
+      return '<a class="linha-cli" href="#/cliente/' + encodeURIComponent(c.id) + '"><span class="avatar' + (c.idioma === 'en' ? ' ane' : '') + '">' + esc((primeiroNome(c.nome) || '?')[0]) + '</span>' +
+        '<div class="cli-nome"><div>' + esc(c.nome) + '</div><small>' + esc(c.origem || 'Sem origem') + ' · ' + quando(c.criadoEm) + '</small></div>' +
+        '<span class="selo" style="background:' + (COR_ETAPA[c.etapa] || 'var(--creme)') + '">' + esc(c.etapa) + '</span>' +
+        '<span class="suave so-pc" style="font-size:13px;min-width:120px;text-align:right">' + esc(retornoTexto(c)) + '</span></a>';
+    }).join('') : '<p class="suave" style="padding:20px">Ninguém com esse filtro.</p>') + '</div>' +
+      (total > l.length ? '<div style="text-align:center;margin-top:18px"><button class="btn btn-linha" type="button" id="mais-lista">Mostrar mais ' + Math.min(100, total - l.length) + '</button></div>' : '');
+    var ml = $('#mais-lista'); if (ml) ml.addEventListener('click', function () { filtroCli.limite += 100; preencherClientes(); });
+    return;
+  }
+  area.innerHTML = '<div class="quadro">' + ETAPAS.map(function (e) {
+    var da = l.filter(function (c) { return c.etapa === e; });
+    var resto = da.length - POR_COLUNA;
+    return '<section class="coluna" data-etapa="' + esc(e) + '"><header style="background:' + COR_ETAPA[e] + '"><span>' + esc(e) + '</span><span class="conta-n">' + da.length + '</span></header>' +
+      '<div class="cartoes">' + da.slice(0, POR_COLUNA).map(cartaoCliente).join('') +
+      (resto > 0 ? '<p class="suave mais-cli">E mais ' + resto + '. Use a busca ou as etiquetas para achar alguém.</p>' : '') + '</div></section>';
+  }).join('') + '</div>';
+  ligarQuadro();
+}
+function ligarQuadro() {
+  var arrastando = null;
+  $$('.cli[draggable]').forEach(function (el) {
+    el.addEventListener('dragstart', function (e) { arrastando = el.dataset.cli; el.classList.add('arrastando'); e.dataTransfer.effectAllowed = 'move'; });
+    el.addEventListener('dragend', function () { el.classList.remove('arrastando'); });
+  });
+  $$('.coluna').forEach(function (col) {
+    col.addEventListener('dragover', function (e) { e.preventDefault(); col.classList.add('alvo'); });
+    col.addEventListener('dragleave', function () { col.classList.remove('alvo'); });
+    col.addEventListener('drop', function (e) {
+      e.preventDefault(); col.classList.remove('alvo');
+      var c = arrastando && Dados.cliente(arrastando); if (!c || c.etapa === col.dataset.etapa) return;
+      var copia = JSON.parse(JSON.stringify(c)); copia.etapa = col.dataset.etapa;
+      Dados.salvarCliente(copia).then(function () { preencherClientes(); aviso(primeiroNome(c.nome) + ' foi para ' + copia.etapa + '.'); }, function () { aviso('Não consegui mover.'); });
+    });
+  });
+}
+
+function telaCliente(id) {
+  var c = Dados.cliente(id);
+  if (!c) return '<a class="voltar" href="#/clientes">' + I.voltar + 'Clientes</a><div class="breve-tela"><h2>Cliente não encontrado</h2></div>';
+  var resp = c.respostas && typeof c.respostas === 'object' ? Object.keys(c.respostas) : [];
+  return '<div class="entra">' +
+    '<a class="voltar" href="#/clientes">' + I.voltar + 'Todos os clientes</a>' +
+    '<section class="ficha-cli">' +
+      '<span class="avatar grande' + (c.idioma === 'en' ? ' ane' : '') + '">' + esc((primeiroNome(c.nome) || '?')[0]) + '</span>' +
+      '<div style="flex:1;min-width:0"><span class="rotulo">' + esc(c.origem || 'Sem origem') + ' · desde ' + esc(dataCurta(c.criadoEm)) + '</span><h1>' + esc(c.nome) + '</h1>' +
+        '<div class="etapas" id="etapas">' + ETAPAS.map(function (e) {
+          return '<button type="button" class="chip' + (e === c.etapa ? ' ativo' : '') + '" data-etapa="' + esc(e) + '">' + esc(e) + '</button>';
+        }).join('') + '</div></div>' +
+    '</section>' +
+    '<div class="acoes-imovel">' +
+      (c.whatsapp ? '<a class="btn btn-wa" target="_blank" rel="noopener" href="' + esc(linkWa(c)) + '">' + I.wa + 'Conversar no WhatsApp</a>' : '') +
+      '<button class="btn btn-linha" type="button" data-material>' + I.casa + 'Enviar material</button>' +
+      '<button class="btn btn-linha btn-redondo" type="button" data-editar-cli aria-label="Editar">' + I.editar + '</button>' +
+    '</div>' +
+    '<div class="duas"><div>' +
+      '<section class="painel"><span class="rotulo">Anotações</span>' +
+        '<form id="f-nota" class="nota-nova"><textarea class="entrada" id="nota" placeholder="O que conversamos, o que a pessoa procura, próximos passos"></textarea>' +
+        '<button class="btn btn-verde" type="submit">Anotar</button></form>' +
+        '<div id="notas" class="notas"><p class="suave">Carregando...</p></div>' +
+      '</section>' +
+    '</div><div>' +
+      '<section class="painel"><span class="rotulo">Lembrete de retorno</span>' +
+        '<p style="margin-bottom:12px">' + (c.lembrarEm ? esc(retornoTexto(c)) : 'Nenhum retorno marcado.') + '</p>' +
+        '<div class="filtros" style="margin:0">' +
+          '<button type="button" class="chip" data-lembrar="1">Amanhã</button><button type="button" class="chip" data-lembrar="3">Em 3 dias</button>' +
+          '<button type="button" class="chip" data-lembrar="7">Em 1 semana</button>' + (c.lembrarEm ? '<button type="button" class="chip" data-lembrar="0">Limpar</button>' : '') +
+        '</div></section>' +
+      '<section class="painel"><span class="rotulo">Contato</span><div class="dados-cli">' +
+        '<div><small>WhatsApp</small>' + esc(telBonito(c.whatsapp) || 'Sem número') + '</div>' +
+        '<div><small>E-mail</small>' + esc(c.email || 'Sem e-mail') + '</div>' +
+        '<div><small>Idioma</small>' + (c.idioma === 'en' ? 'Inglês' : 'Português') + '</div>' +
+        '<div><small>Aceita receber</small>' + ([c.aceitaWhatsapp ? 'WhatsApp' : '', c.aceitaEmail ? 'E-mail' : ''].filter(Boolean).join(' e ') || 'Ainda não') + '</div>' +
+      '</div></section>' +
+      '<section class="painel"><span class="rotulo">Etiquetas</span><div class="tags" id="tags">' +
+        (c.etiquetas || []).map(function (t) { return '<button type="button" class="tag tira" data-tira="' + esc(t) + '" title="Tirar">' + esc(t) + ' ×</button>'; }).join('') +
+        '</div><form id="f-tag" class="nota-nova" style="margin-top:12px"><input class="entrada" id="tag" list="lista-tags" placeholder="Nova etiqueta, ex.: Serra"><datalist id="lista-tags">' +
+        todasEtiquetas().map(function (t) { return '<option value="' + esc(t) + '">'; }).join('') + '</datalist><button class="btn btn-linha" type="submit">Pôr</button></form></section>' +
+      (resp.length ? '<section class="painel"><span class="rotulo">Informações</span><div class="dados-cli">' +
+        resp.map(function (k) { return '<div><small>' + esc(k) + '</small>' + esc(c.respostas[k]) + '</div>'; }).join('') + '</div></section>' : '') +
+    '</div></div></div>';
+}
+
+function janelaCliente(c) {
+  var novo = !c;
+  c = c || { nome: '', whatsapp: '', email: '', idioma: 'pt', etapa: 'Novo', origem: 'WhatsApp', etiquetas: [], aceitaWhatsapp: true, aceitaEmail: false, lembrarEm: null };
+  function op(lista, v) { return lista.map(function (x) { return '<option' + (x === v ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join(''); }
+  abrirJanela(
+    '<span class="rotulo">' + (novo ? 'Novo cliente' : 'Editar') + '</span><h2>' + (novo ? 'Quem chegou?' : esc(c.nome)) + '</h2>' +
+    '<form id="f-cli" class="grade-form" style="margin-top:20px">' +
+      '<label class="campo inteiro"><span class="rotulo">Nome</span><input class="entrada" name="nome" required value="' + esc(c.nome) + '"></label>' +
+      '<label class="campo"><span class="rotulo">WhatsApp com DDD</span><input class="entrada" name="whatsapp" inputmode="tel" value="' + esc(c.whatsapp) + '" placeholder="48 99999 9999"></label>' +
+      '<label class="campo"><span class="rotulo">E-mail</span><input class="entrada" name="email" type="email" value="' + esc(c.email) + '"></label>' +
+      '<label class="campo"><span class="rotulo">De onde veio</span><select class="entrada" name="origem">' + op(ORIGENS, c.origem) + '</select></label>' +
+      '<label class="campo"><span class="rotulo">Etapa</span><select class="entrada" name="etapa">' + op(ETAPAS, c.etapa) + '</select></label>' +
+      '<label class="campo"><span class="rotulo">Idioma</span><select class="entrada" name="idioma"><option value="pt"' + (c.idioma !== 'en' ? ' selected' : '') + '>Português</option><option value="en"' + (c.idioma === 'en' ? ' selected' : '') + '>Inglês</option></select></label>' +
+      '<label class="campo"><span class="rotulo">Etiquetas</span><input class="entrada" name="etiquetas" value="' + esc((c.etiquetas || []).join(', ')) + '" placeholder="Serra, Investidor"></label>' +
+      '<div class="campo inteiro privacidade">' +
+        '<label class="alavanca"><input type="checkbox" name="aceitaWhatsapp"' + (c.aceitaWhatsapp ? ' checked' : '') + '><span class="trilho"></span>Aceita receber comunicados por WhatsApp</label>' +
+        '<label class="alavanca"><input type="checkbox" name="aceitaEmail"' + (c.aceitaEmail ? ' checked' : '') + '><span class="trilho"></span>Aceita receber e-mails</label>' +
+      '</div>' +
+      '<div class="fim inteiro">' + (novo ? '' : '<button class="btn btn-linha" type="button" id="remover">Remover</button>') +
+        '<button class="btn btn-linha" type="button" data-fechar>Cancelar</button><button class="btn btn-verde" type="submit">Salvar</button></div>' +
+    '</form>',
+    function (j) {
+      var f = $('#f-cli', j);
+      f.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var d = new FormData(f);
+        c.nome = d.get('nome').trim(); c.whatsapp = soNumeros(d.get('whatsapp')); c.email = d.get('email').trim();
+        c.origem = d.get('origem'); c.etapa = d.get('etapa'); c.idioma = d.get('idioma');
+        c.etiquetas = d.get('etiquetas').split(',').map(function (t) { return t.trim(); }).filter(Boolean);
+        c.aceitaWhatsapp = !!d.get('aceitaWhatsapp'); c.aceitaEmail = !!d.get('aceitaEmail');
+        var btn = $('button[type=submit]', f); btn.disabled = true; btn.textContent = 'Salvando...';
+        Dados.salvarCliente(c).then(function (s) {
+          fecharJanela(); aviso(novo ? primeiroNome(s.nome) + ' entrou na base.' : 'Alterações salvas.');
+          location.hash = '#/cliente/' + encodeURIComponent(s.id); render();
+        }, function () { btn.disabled = false; btn.textContent = 'Salvar'; aviso('Não consegui salvar. Tente de novo.'); });
+      });
+      var rm = $('#remover', j);
+      if (rm) rm.addEventListener('click', function () {
+        if (rm.dataset.ok) { Dados.removerCliente(c.id).then(function () { fecharJanela(); aviso('Cliente removido.'); location.hash = '#/clientes'; render(); }); }
+        else { rm.dataset.ok = 1; rm.textContent = 'Toque de novo para remover'; }
+      });
+    });
+}
+
+function janelaEscolherImovel(c) {
+  var ims = Dados.imoveis();
+  abrirJanela('<span class="rotulo">Enviar material para ' + esc(primeiroNome(c.nome)) + '</span><h2>Qual imóvel?</h2>' +
+    '<div class="pessoas" style="max-height:none;margin-top:18px">' + ims.map(function (im) {
+      return '<div class="pessoa" data-im="' + esc(im.id) + '"><span class="avatar" style="background:url(\'' + esc(im.fotos[0] || '') + '\') center/cover, var(--verde)"></span><div>' + esc(im.nome) + '<small>' + esc(im.local) + '</small></div></div>';
+    }).join('') + '</div><div class="fim"><button class="btn btn-linha" type="button" data-fechar>Cancelar</button></div>',
+    function (j) {
+      $$('[data-im]', j).forEach(function (el) { el.addEventListener('click', function () { var im = Dados.imovel(el.dataset.im); fecharJanela(); janelaEnviar(im, c); }); });
+    });
+}
+
+function ligarCliente(id) {
+  var c = Dados.cliente(id); if (!c) return;
+  function salvarCom(mudar, msg) {
+    var copia = JSON.parse(JSON.stringify(c)); mudar(copia);
+    return Dados.salvarCliente(copia).then(function () { render(); if (msg) aviso(msg); }, function () { aviso('Não consegui salvar.'); });
+  }
+  $$('#etapas [data-etapa]').forEach(function (b) {
+    b.addEventListener('click', function () { var e = b.dataset.etapa; if (e !== c.etapa) salvarCom(function (x) { x.etapa = e; }, primeiroNome(c.nome) + ' agora está em ' + e + '.'); });
+  });
+  $$('[data-lembrar]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var n = +b.dataset.lembrar;
+      salvarCom(function (x) { x.lembrarEm = n ? maisDias(n) : null; }, n ? 'Lembrete marcado para ' + dataCurta(maisDias(n)) + '.' : 'Lembrete tirado.');
+    });
+  });
+  $('[data-editar-cli]').addEventListener('click', function () { janelaCliente(JSON.parse(JSON.stringify(c))); });
+  $('[data-material]').addEventListener('click', function () { janelaEscolherImovel(c); });
+  $$('[data-tira]').forEach(function (b) {
+    b.addEventListener('click', function () { var t = b.dataset.tira; salvarCom(function (x) { x.etiquetas = x.etiquetas.filter(function (y) { return y !== t; }); }); });
+  });
+  $('#f-tag').addEventListener('submit', function (e) {
+    e.preventDefault(); var t = $('#tag').value.trim(); if (!t) return;
+    salvarCom(function (x) { x.etiquetas = (x.etiquetas || []).filter(function (y) { return y !== t; }).concat([t]); }, 'Etiqueta posta.');
+  });
+  function pintarNotas() {
+    Dados.anotacoes(c.id).then(function (l) {
+      var box = $('#notas'); if (!box) return;
+      box.innerHTML = l.length ? l.map(function (n) {
+        return '<div class="nota"><small>' + esc(n.autor || '') + (n.autor ? ' · ' : '') + esc(dataCurta(n.criadoEm)) + '</small><p>' + esc(n.texto) + '</p></div>';
+      }).join('') : '<p class="suave">Nenhuma anotação ainda.</p>';
+    }, function () { var box = $('#notas'); if (box) box.innerHTML = '<p class="suave">Não consegui carregar as anotações.</p>'; });
+  }
+  $('#f-nota').addEventListener('submit', function (e) {
+    e.preventDefault(); var t = $('#nota').value.trim(); if (!t) return;
+    Dados.anotar(c.id, t).then(function () { $('#nota').value = ''; pintarNotas(); aviso('Anotado.'); }, function () { aviso('Não consegui anotar.'); });
+  });
+  pintarNotas();
+}
+
+
+/* ============================================================
    EM BREVE
    ============================================================ */
 function telaBreve(id) {
@@ -409,6 +683,8 @@ function render() {
   if (rota === 'hoje') miolo = telaHoje();
   else if (rota === 'imoveis') miolo = telaImoveis();
   else if (rota === 'imovel') { miolo = telaImovel(arg); atual = 'imoveis'; }
+  else if (rota === 'clientes') miolo = telaClientes();
+  else if (rota === 'cliente') { miolo = telaCliente(arg); atual = 'clientes'; }
   else if (BREVE[rota]) miolo = telaBreve(rota);
   else { miolo = telaHoje(); atual = 'hoje'; }
   $('#app').innerHTML = casca(atual, miolo);
@@ -418,6 +694,27 @@ function render() {
 function ligar(rota, arg) {
   $$('[data-sair]').forEach(function (b) { b.addEventListener('click', sair); });
   $$('[data-novo-imovel]').forEach(function (b) { b.addEventListener('click', function () { janelaImovel(null); }); });
+  $$('[data-novo-cliente]').forEach(function (b) { b.addEventListener('click', function () { janelaCliente(null); }); });
+  if (rota === 'clientes') {
+    preencherClientes();
+    $('#area-cli').addEventListener('click', function (e) { if (e.target.closest('[data-novo-cliente]')) janelaCliente(null); });
+    $('#busca-cli').addEventListener('input', function (e) { filtroCli.busca = e.target.value; filtroCli.limite = 100; preencherClientes(); });
+    $$('#vista [data-v]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        filtroCli.vista = b.dataset.v; try { localStorage.setItem('co_vista', filtroCli.vista); } catch (e) {}
+        $$('#vista [data-v]').forEach(function (x) { x.classList.toggle('ativo', x === b); });
+        preencherClientes();
+      });
+    });
+    $$('[data-tag]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        filtroCli.etiqueta = b.dataset.tag; filtroCli.limite = 100;
+        $$('[data-tag]').forEach(function (x) { x.classList.toggle('ativo', x === b); });
+        preencherClientes();
+      });
+    });
+  }
+  if (rota === 'cliente') ligarCliente(arg);
   if (rota === 'imoveis') {
     preencherGrade();
     $('#busca').addEventListener('input', function (e) { filtro.busca = e.target.value; preencherGrade(); });
