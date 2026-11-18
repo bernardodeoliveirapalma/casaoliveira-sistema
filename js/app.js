@@ -828,6 +828,7 @@ function janelaVerConvite(c) {
     '<div class="fim">' +
       '<button class="btn btn-linha" type="button" id="cancelar-conv">Cancelar convite</button>' +
       '<button class="btn btn-linha" type="button" id="copiar-conv">' + I.link + 'Copiar link</button>' +
+      '<a class="btn btn-linha" href="mailto:' + esc(c.email) + '?subject=' + encodeURIComponent('Seu acesso ao portal de parceiros da Casa Oliveira') + '&body=' + encodeURIComponent(msg) + '">' + I.carta + 'Enviar por e-mail</a>' +
       '<a class="btn btn-wa" target="_blank" rel="noopener" href="https://wa.me/' + esc(c.whatsapp || '') + '?text=' + encodeURIComponent(msg) + '">' + I.wa + 'Enviar pelo WhatsApp</a>' +
     '</div>',
     function (j) {
