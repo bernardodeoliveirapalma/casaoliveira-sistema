@@ -27,6 +27,7 @@
 </head>
 <body>
 <div class="ap" id="ap"></div>
+<script src="js/vendor/supabase.min.js"></script>
 <script src="js/config.js"></script>
 <script src="js/dados.js"></script>
 <script>
@@ -34,7 +35,6 @@
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   var p = new URLSearchParams(location.search);
   var L = p.get('lang') === 'en' ? 1 : 0;
-  var im = Dados.imovel(p.get('i'));
   var T = {
     titulo: ['Apresentação', 'Presentation'], docs: ['Materiais', 'Materials'], fotos: ['Fotos', 'Photos'],
     cta: ['Conversar com a Casa Oliveira', 'Talk to Casa Oliveira'], idioma: ['English', 'Português'],
@@ -42,6 +42,28 @@
     ex: [' · exemplo', ' · sample']
   };
   var ap = document.getElementById('ap');
+  ap.innerHTML = '<header><img src="assets/logo.png" alt="Casa Oliveira"></header>';
+  carregar(p.get('i')).then(mostrar, function () { mostrar(null); });
+
+  /* Busca a apresentação: no banco (só o que pode ser público) ou nos exemplos */
+  function carregar(id) {
+    if (Dados.demo) return Promise.resolve(Dados.imovel(id));
+    var sb = Dados._sb, B = sb.storage.from('materiais');
+    return sb.rpc('apresentacao', { p_id: id }).then(function (r) {
+      if (r.error || !r.data) return null;
+      var d = r.data, arqs = d.arquivos || [];
+      var caminhos = arqs.map(function (x) { return x.caminho; });
+      var q = caminhos.length ? B.createSignedUrls(caminhos, 60 * 60 * 24 * 7) : Promise.resolve({ data: [] });
+      return q.then(function (u) {
+        var urls = {}; (u.data || []).forEach(function (x) { if (x.signedUrl) urls[x.path] = x.signedUrl; });
+        return { id: d.id, nome: d.nome, local: d.local, texto: d.texto || ['', ''], fatos: d.fatos || [], endereco: d.endereco, valores: d.valores,
+          fotos: arqs.filter(function (x) { return x.tipo === 'foto'; }).map(function (x) { return urls[x.caminho]; }).filter(Boolean),
+          docs: arqs.filter(function (x) { return x.tipo !== 'foto'; }).map(function (x) { return { nome: x.nome, tipo: x.tipo, url: urls[x.caminho] }; }) };
+      });
+    });
+  }
+
+  function mostrar(im) {
   if (!im) { ap.innerHTML = '<div class="breve-tela"><h2>' + T.nao[L] + '</h2></div>'; return; }
   document.title = im.nome + ' · Casa Oliveira';
   var msg = L ? 'Hello, Casa Oliveira. I saw the ' + im.nome + ' presentation and would like to talk.' : 'Olá, família. Vi a apresentação do ' + im.nome + ' e quero conversar.';
@@ -51,13 +73,17 @@
     '<section class="capa" style="background-image:url(\'' + esc(im.fotos[0] || '') + '\')"><div class="sobre"><span class="rotulo" style="color:rgba(242,240,235,.8)">' + T.titulo[L] + '</span>' +
       '<h1>' + esc(im.nome) + '</h1><p>' + esc(im.local) + '</p></div></section>' +
     '<p class="texto">' + esc(im.texto[L] || im.texto[0]) + '</p>' +
+    (im.endereco || im.valores ? '<div class="fatos" style="margin-bottom:12px">' + (im.endereco ? '<div class="fato"><div class="v">' + (L ? 'Address' : 'Endereço') + '</div><div>' + esc(im.endereco) + '</div></div>' : '') +
+      (im.valores ? '<div class="fato"><div class="v">' + (L ? 'Values' : 'Valores') + '</div><div>' + esc(im.valores) + '</div></div>' : '') + '</div>' : '') +
     (im.fatos.length ? '<div class="fatos">' + im.fatos.map(function (f) { return '<div class="fato"><div class="k">' + esc(f[0]) + '</div><div class="v">' + esc(f[1]) + '</div></div>'; }).join('') + '</div>' : '') +
     (im.fotos.length > 1 ? '<div class="galeria">' + im.fotos.slice(1).map(function (f) { return '<div style="background-image:url(\'' + esc(f) + '\')"></div>'; }).join('') + '</div>' : '') +
     (im.docs.length ? '<section class="painel" style="margin-top:24px"><span class="rotulo">' + T.docs[L] + '</span><div class="docs">' + im.docs.map(function (d) {
-      return '<div class="doc"><span class="ic ' + esc(d.tipo) + '">' + esc((TIPOS_DOC[d.tipo] || 'Doc').slice(0, 4)) + '</span><div class="nome"><div>' + esc(d.nome) + '</div><small>PDF' + (d.exemplo ? T.ex[L] : '') + '</small></div></div>';
+      var tag = d.url ? 'a' : 'div';
+      return '<' + tag + ' class="doc"' + (d.url ? ' href="' + esc(d.url) + '" target="_blank" rel="noopener" style="text-decoration:none"' : '') + '><span class="ic ' + esc(d.tipo) + '">' + esc((TIPOS_DOC[d.tipo] || 'Doc').slice(0, 4)) + '</span><div class="nome"><div>' + esc(d.nome) + '</div><small>' + esc(TIPOS_DOC[d.tipo] || 'Documento') + (d.exemplo ? T.ex[L] : '') + '</small></div></' + tag + '>';
     }).join('') + '</div></section>' : '') +
     '<footer><div class="ass">Ane &amp; Bernardo</div><div class="rotulo">Casa Oliveira · Florianópolis</div></footer>' +
     '<a class="btn btn-wa fixo" target="_blank" rel="noopener" href="https://wa.me/' + CONFIG.whatsapp + '?text=' + encodeURIComponent(msg) + '">' + T.cta[L] + '</a>';
+  }
 })();
 </script>
 </body>

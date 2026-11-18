@@ -59,9 +59,8 @@ var BREVE = {
 
 /* ---------- sessão ---------- */
 var EU = null;
-try { EU = JSON.parse(sessionStorage.getItem('co_eu')); } catch (e) {}
-
-function sair() { try { sessionStorage.removeItem('co_eu'); } catch (e) {} EU = null; location.hash = ''; render(); }
+function sair() { Dados.sair().then(function () { EU = null; location.hash = ''; render(); }); }
+function lembrar(nome, email) { try { if (email) localStorage.setItem('co_email_' + nome, email); return localStorage.getItem('co_email_' + nome) || ''; } catch (e) { return email || ''; } }
 
 /* ---------- aviso ---------- */
 var toastTimer;
@@ -90,19 +89,21 @@ function escFecha(e) { if (e.key === 'Escape') fecharJanela(); }
    ============================================================ */
 function telaEntrar() {
   var sel = 0;
+  try { sel = Math.max(0, CONFIG.equipe.indexOf(localStorage.getItem('co_ultimo'))); } catch (e) {}
   $('#app').innerHTML =
     '<div class="login"><div class="login-caixa entra">' +
       '<img class="logo" src="assets/logo.png" alt="Casa Oliveira">' +
       '<div><h1>Bem-vindos de volta</h1><p class="suave">Quem está entrando hoje?</p></div>' +
-      '<div class="contas">' + CONFIG.equipe.map(function (p, i) {
-        return '<button type="button" class="conta' + (i === 0 ? ' ativa' : '') + '" data-i="' + i + '">' +
-          '<span class="avatar' + (p.nome === 'Ane' ? ' ane' : '') + '">' + esc(p.nome[0]) + '</span>' + esc(p.nome) + '</button>';
+      '<div class="contas">' + CONFIG.equipe.map(function (nome, i) {
+        return '<button type="button" class="conta' + (i === sel ? ' ativa' : '') + '" data-i="' + i + '">' +
+          '<span class="avatar' + (nome === 'Ane' ? ' ane' : '') + '">' + esc(nome[0]) + '</span>' + esc(nome) + '</button>';
       }).join('') + '</div>' +
       '<form id="f-entrar">' +
-        '<label class="campo"><span class="rotulo">E-mail</span><input class="entrada" id="email" type="email" autocomplete="username" value="' + esc(CONFIG.equipe[0].email) + '"></label>' +
+        '<label class="campo"><span class="rotulo">E-mail</span><input class="entrada" id="email" type="email" autocomplete="username" placeholder="seu@email.com" value="' + esc(lembrar(CONFIG.equipe[sel])) + '"></label>' +
         '<label class="campo"><span class="rotulo">Senha</span><input class="entrada" id="senha" type="password" autocomplete="current-password" placeholder="Sua senha"></label>' +
-        '<button class="btn btn-verde btn-bloco" type="submit">Entrar</button>' +
+        '<button class="btn btn-verde btn-bloco" type="submit" id="b-entrar">Entrar</button>' +
       '</form>' +
+      (Dados.demo ? '' : '<button type="button" class="btn btn-linha btn-pequeno" style="margin-top:14px" id="esqueci">Esqueci minha senha</button>') +
       (Dados.demo ? '<div class="aviso-demo">Modo demonstração. Qualquer senha entra, e os dados ficam só neste navegador.</div>' : '') +
     '</div></div>';
 
@@ -110,16 +111,28 @@ function telaEntrar() {
     b.addEventListener('click', function () {
       sel = +b.dataset.i;
       $$('.conta').forEach(function (x) { x.classList.toggle('ativa', x === b); });
-      $('#email').value = CONFIG.equipe[sel].email; $('#senha').focus();
+      $('#email').value = lembrar(CONFIG.equipe[sel]); ($('#email').value ? $('#senha') : $('#email')).focus();
     });
   });
   $('#f-entrar').addEventListener('submit', function (e) {
     e.preventDefault();
-    var email = $('#email').value.trim().toLowerCase();
-    var p = CONFIG.equipe.filter(function (x) { return x.email === email; })[0];
-    if (!p) { aviso('Esse e-mail não tem acesso ao painel.'); return; }
-    EU = p; try { sessionStorage.setItem('co_eu', JSON.stringify(p)); } catch (e2) {}
-    location.hash = '#/hoje'; render();
+    var email = $('#email').value.trim().toLowerCase(), senha = $('#senha').value;
+    if (!email || !senha) { aviso('Preencha e-mail e senha.'); return; }
+    var b = $('#b-entrar'); b.disabled = true; b.textContent = 'Entrando...';
+    Dados.entrar(email, senha, CONFIG.equipe[sel]).then(function (p) {
+      EU = p; lembrar(CONFIG.equipe[sel], email);
+      try { localStorage.setItem('co_ultimo', CONFIG.equipe[sel]); } catch (e2) {}
+      location.hash = '#/hoje'; render();
+    }).catch(function (err) {
+      b.disabled = false; b.textContent = 'Entrar';
+      aviso(err && err.message === 'sem-acesso' ? 'Esse e-mail não tem acesso ao painel.' : 'E-mail ou senha não conferem.');
+    });
+  });
+  var esq = $('#esqueci');
+  if (esq) esq.addEventListener('click', function () {
+    var email = $('#email').value.trim();
+    if (!email) { aviso('Escreva seu e-mail primeiro.'); return; }
+    Dados.recuperarSenha(email).then(function () { aviso('Mandamos um link para ' + email + '.'); }, function () { aviso('Não deu certo agora. Tente de novo.'); });
   });
 }
 
@@ -238,10 +251,10 @@ function telaImovel(id) {
     '</div><div>' +
       '<section class="painel"><div class="painel-topo"><span class="rotulo">Documentos · ' + im.docs.length + '</span>' +
         '<label class="btn btn-linha btn-pequeno">' + I.mais + 'Adicionar<input type="file" hidden multiple id="mais-docs" accept=".pdf,.doc,.docx,.xls,.xlsx,.mp4,.mov"></label></div><div class="docs">' +
-        im.docs.map(function (d) {
+        im.docs.map(function (d, i) {
           return '<div class="doc"><span class="ic ' + esc(d.tipo) + '">' + esc((TIPOS_DOC[d.tipo] || 'Doc').slice(0, 4)) + '</span>' +
             '<div class="nome"><div>' + esc(d.nome) + '</div><small>' + esc(TIPOS_DOC[d.tipo] || 'Documento') + (d.exemplo ? ' · exemplo, sem arquivo' : '') + '</small></div>' +
-            '<button class="btn btn-linha btn-redondo btn-pequeno" style="width:40px" type="button" aria-label="Baixar">' + I.baixar + '</button></div>';
+            '<button class="btn btn-linha btn-redondo btn-pequeno" style="width:40px" type="button" aria-label="Baixar" data-baixar="' + i + '">' + I.baixar + '</button></div>';
         }).join('') + '</div></section>' +
       '<section class="painel"><span class="rotulo">O que o cliente vê</span><div class="privacidade">' +
         '<label class="alavanca"><input type="checkbox" data-priv="mostrarEndereco"' + (im.mostrarEndereco ? ' checked' : '') + '><span class="trilho"></span>Mostrar endereço</label>' +
@@ -358,32 +371,21 @@ function janelaImovel(im) {
         var d = new FormData(f);
         im.nome = d.get('nome').trim(); im.parceiro = d.get('parceiro').trim(); im.local = d.get('local').trim();
         im.tipo = d.get('tipo'); im.status = d.get('status'); im.texto = [d.get('pt').trim(), d.get('en').trim()];
-        function fim() { Dados.salvarImovel(im); fecharJanela(); aviso(novo ? 'Imóvel cadastrado.' : 'Alterações salvas.'); location.hash = '#/imovel/' + encodeURIComponent(im.id); render(); }
-        var capa = d.get('capa');
-        if (capa && capa.size) lerImagem(capa, function (url) { im.fotos.unshift(url); fim(); }); else fim();
+        var capa = d.get('capa'), btn = $('button[type=submit]', f);
+        btn.disabled = true; btn.textContent = 'Salvando...';
+        Dados.salvarImovel(im).then(function (salvo) {
+          return capa && capa.size ? Dados.adicionarFotos(salvo, [capa]) : salvo;
+        }).then(function (salvo) {
+          fecharJanela(); aviso(novo ? 'Imóvel cadastrado.' : 'Alterações salvas.');
+          location.hash = '#/imovel/' + encodeURIComponent(salvo.id); render();
+        }).catch(function () { btn.disabled = false; btn.textContent = 'Salvar'; aviso('Não consegui salvar. Tente de novo.'); });
       });
       var rm = $('#remover', j);
       if (rm) rm.addEventListener('click', function () {
-        if (rm.dataset.ok) { Dados.removerImovel(im.id); fecharJanela(); aviso('Imóvel removido.'); location.hash = '#/imoveis'; render(); }
+        if (rm.dataset.ok) { Dados.removerImovel(im.id).then(function () { fecharJanela(); aviso('Imóvel removido.'); location.hash = '#/imoveis'; render(); }, function () { aviso('Não consegui remover.'); }); }
         else { rm.dataset.ok = 1; rm.textContent = 'Toque de novo para remover'; }
       });
     });
-}
-
-/* Reduz a foto antes de guardar (no modo demonstração tudo fica no navegador) */
-function lerImagem(arq, cb) {
-  var r = new FileReader();
-  r.onload = function () {
-    var img = new Image();
-    img.onload = function () {
-      var max = 1200, s = Math.min(1, max / Math.max(img.width, img.height));
-      var c = document.createElement('canvas'); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
-      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-      cb(c.toDataURL('image/jpeg', .82));
-    };
-    img.src = r.result;
-  };
-  r.readAsDataURL(arq);
 }
 
 /* ============================================================
@@ -437,11 +439,12 @@ function ligar(rota, arg) {
       (navigator.clipboard ? navigator.clipboard.writeText(l) : Promise.reject()).then(function () { aviso('Link copiado.'); }, function () { prompt('Copie o link:', l); });
     });
     $$('[data-idioma]').forEach(function (b) { b.addEventListener('click', function () { idiomaFicha = +b.dataset.idioma; render(); }); });
-    $$('[data-priv]').forEach(function (c) { c.addEventListener('change', function () { im[c.dataset.priv] = c.checked; Dados.salvarImovel(im); aviso('Preferência salva.'); }); });
+    $$('[data-priv]').forEach(function (c) { c.addEventListener('change', function () { im[c.dataset.priv] = c.checked; Dados.salvarImovel(im).then(function () { aviso('Preferência salva.'); }, function () { aviso('Não consegui salvar.'); }); }); });
     function addFotos(files) {
-      var l = Array.prototype.slice.call(files).filter(function (f) { return /^image\//.test(f.type); }), n = l.length;
-      if (!n) return;
-      l.forEach(function (f) { lerImagem(f, function (url) { im.fotos.push(url); if (--n === 0) { Dados.salvarImovel(im); render(); aviso(l.length + (l.length > 1 ? ' fotos adicionadas.' : ' foto adicionada.')); } }); });
+      var l = Array.prototype.slice.call(files).filter(function (f) { return /^image\//.test(f.type); });
+      if (!l.length) return;
+      aviso('Enviando ' + l.length + (l.length > 1 ? ' fotos...' : ' foto...'));
+      Dados.adicionarFotos(im, l).then(function () { render(); aviso(l.length + (l.length > 1 ? ' fotos adicionadas.' : ' foto adicionada.')); }, function () { aviso('Algumas fotos não subiram. Tente de novo.'); });
     }
     $('#mais-fotos').addEventListener('change', function (e) { addFotos(e.target.files); });
     var z = $('#soltar-fotos');
@@ -449,15 +452,23 @@ function ligar(rota, arg) {
     ['dragleave', 'drop'].forEach(function (ev) { z.addEventListener(ev, function () { z.classList.remove('sobre'); }); });
     z.addEventListener('drop', function (e) { e.preventDefault(); addFotos(e.dataTransfer.files); });
     $('#mais-docs').addEventListener('change', function (e) {
-      Array.prototype.slice.call(e.target.files).forEach(function (f) {
-        var t = /tabela|preco|valores/i.test(f.name) ? 'tabela' : /planta/i.test(f.name) ? 'planta' : /memorial/i.test(f.name) ? 'memorial' : /\.(mp4|mov)$/i.test(f.name) ? 'video' : /book|apresenta/i.test(f.name) ? 'book' : 'outro';
-        im.docs.push({ nome: f.name.replace(/\.[^.]+$/, ''), tipo: t, exemplo: Dados.demo });
+      var l = Array.prototype.slice.call(e.target.files);
+      if (!l.length) return;
+      aviso('Enviando ' + l.length + (l.length > 1 ? ' documentos...' : ' documento...'));
+      Dados.adicionarDocs(im, l).then(function () { render(); aviso('Documentos adicionados.'); }, function () { aviso('Algum documento não subiu. Tente de novo.'); });
+    });
+    $$('[data-baixar]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var d = im.docs[+b.dataset.baixar];
+        if (!d || !d.caminho) { aviso('Este documento é só um exemplo.'); return; }
+        var w = window.open('', '_blank');
+        Dados.linkArquivo(d.caminho).then(function (u) { if (u && w) w.location = u; else if (w) w.close(); });
       });
-      Dados.salvarImovel(im); render(); aviso('Documentos adicionados.');
     });
   }
 }
 
 window.addEventListener('hashchange', render);
-render();
+$('#app').innerHTML = '<div class="login"><img src="assets/logo.png" alt="Casa Oliveira" style="width:200px;opacity:.6"></div>';
+Dados.iniciar().catch(function () {}).then(function () { EU = Dados.eu(); render(); });
 })();
