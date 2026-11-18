@@ -1,23 +1,23 @@
 // ============================================================
 // Função "comunicados" (Supabase Edge Function)
-// Fala com a API oficial do WhatsApp (Meta) em nome do painel.
+// Envia os comunicados pela API oficial do WhatsApp, através da
+// YCloud (parceira da Meta), usando o número atual da Casa Oliveira.
 // Só a equipe (Ane e Bernardo) consegue chamar.
 //
 // Segredos (Edge Functions > Secrets):
-//   WA_TOKEN      token permanente do usuário do sistema na Meta
-//   WA_PHONE_ID   ID do número de telefone (WhatsApp Manager)
-//   WA_WABA_ID    ID da conta do WhatsApp Business
-//   WA_API        versão da API, opcional (padrão v23.0)
+//   YCLOUD_API_KEY  chave da API da YCloud
+//   WA_FROM         número da Casa Oliveira, ex.: +5548992228009
+//   WA_WABA_ID      ID da conta do WhatsApp Business (WABA)
 // ============================================================
 import { createClient } from 'npm:@supabase/supabase-js@2.45.4';
 
 const URL = Deno.env.get('SUPABASE_URL')!;
 const ANON = Deno.env.get('SUPABASE_ANON_KEY')!;
 const SERVICE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-const TOKEN = Deno.env.get('WA_TOKEN') || '';
-const PHONE = Deno.env.get('WA_PHONE_ID') || '';
+const CHAVE = Deno.env.get('YCLOUD_API_KEY') || '';
+const FROM = Deno.env.get('WA_FROM') || '';
 const WABA = Deno.env.get('WA_WABA_ID') || '';
-const API = 'https://graph.facebook.com/' + (Deno.env.get('WA_API') || 'v23.0');
+const API = 'https://api.ycloud.com/v2';
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -27,13 +27,13 @@ const cors = {
 const json = (b: unknown, status = 200) =>
   new Response(JSON.stringify(b), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
 
-async function meta(path: string, init: RequestInit = {}) {
+async function ycloud(path: string, init: RequestInit = {}) {
   const r = await fetch(API + path, {
     ...init,
-    headers: { Authorization: 'Bearer ' + TOKEN, 'Content-Type': 'application/json', ...(init.headers || {}) },
+    headers: { 'X-API-Key': CHAVE, 'Content-Type': 'application/json', ...(init.headers || {}) },
   });
   const corpo = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(corpo?.error?.error_user_msg || corpo?.error?.message || 'Erro ' + r.status);
+  if (!r.ok) throw new Error(corpo?.error?.message || corpo?.message || 'Erro ' + r.status);
   return corpo;
 }
 
@@ -41,6 +41,7 @@ function primeiroNome(n: string | null) {
   const p = String(n || '').replace(/\s*\(.*\)\s*/, '').trim().split(' ')[0];
   return p ? p[0].toUpperCase() + p.slice(1).toLowerCase() : 'tudo bem';
 }
+const e164 = (n: string) => '+' + String(n).replace(/\D/g, '');
 
 async function enviarComunicado(db: ReturnType<typeof createClient>, id: string) {
   const { data: c } = await db.from('comunicados').select('*, modelos(*)').eq('id', id).single();
@@ -49,26 +50,28 @@ async function enviarComunicado(db: ReturnType<typeof createClient>, id: string)
   const m = c.modelos;
   let falhas = 0;
   while (true) {
-    const { data: lote } = await db.from('envios').select('*').eq('comunicado_id', id).eq('status', 'fila').limit(20);
+    const { data: lote } = await db.from('envios').select('*').eq('comunicado_id', id).eq('status', 'fila').limit(5);
     if (!lote || !lote.length) break;
     await Promise.all(lote.map(async (e: any) => {
       try {
-        const r = await meta('/' + PHONE + '/messages', {
+        const r = await ycloud('/whatsapp/messages', {
           method: 'POST',
           body: JSON.stringify({
-            messaging_product: 'whatsapp', to: e.whatsapp, type: 'template',
+            from: FROM, to: e164(e.whatsapp), type: 'template', externalId: 'envio-' + e.id,
+            filterUnsubscribed: true,
             template: {
               name: m.nome_meta, language: { code: m.idioma },
-              components: m.corpo.includes('{{1}}') ? [{ type: 'body', parameters: [{ type: 'text', text: primeiroNome(e.nome) }] }] : [],
+              ...(m.corpo.includes('{{1}}') ? { components: [{ type: 'body', parameters: [{ type: 'text', text: primeiroNome(e.nome) }] }] } : {}),
             },
           }),
         });
-        await db.from('envios').update({ status: 'enviado', wa_id: r.messages?.[0]?.id, atualizado_em: new Date().toISOString() }).eq('id', e.id);
+        await db.from('envios').update({ status: 'enviado', wa_id: r.id, atualizado_em: new Date().toISOString() }).eq('id', e.id);
       } catch (err) {
         falhas++;
         await db.from('envios').update({ status: 'falhou', erro: String((err as Error).message).slice(0, 300), atualizado_em: new Date().toISOString() }).eq('id', e.id);
       }
     }));
+    await new Promise((ok) => setTimeout(ok, 1100)); // número compartilhado com o app: até 5 por segundo
   }
   await db.from('comunicados').update({ status: falhas && falhas === c.total ? 'Erro' : 'Enviado', enviado_em: new Date().toISOString() }).eq('id', id);
 }
@@ -83,8 +86,8 @@ Deno.serve(async (req) => {
     const db = createClient(URL, SERVICE);
     const { acao, id } = await req.json();
 
-    if (acao === 'status') return json({ conectado: !!(TOKEN && PHONE && WABA) });
-    if (!TOKEN || !PHONE || !WABA) return json({ erro: 'WhatsApp oficial ainda não conectado' }, 400);
+    if (acao === 'status') return json({ conectado: !!(CHAVE && FROM && WABA) });
+    if (!CHAVE || !FROM || !WABA) return json({ erro: 'WhatsApp oficial ainda não conectado' }, 400);
 
     if (acao === 'enviar') {
       // responde na hora e continua enviando em segundo plano
@@ -106,23 +109,26 @@ Deno.serve(async (req) => {
       if (m.botao_texto && m.botao_url) botoes.push({ type: 'URL', text: m.botao_texto, url: m.botao_url });
       if (m.categoria === 'MARKETING') botoes.push({ type: 'QUICK_REPLY', text: 'Parar de receber' });
       if (botoes.length) comps.push({ type: 'BUTTONS', buttons: botoes });
-      await meta('/' + WABA + '/message_templates', {
+      await ycloud('/whatsapp/templates', {
         method: 'POST',
-        body: JSON.stringify({ name: m.nome_meta, language: m.idioma, category: m.categoria, components: comps }),
+        body: JSON.stringify({ wabaId: WABA, name: m.nome_meta, language: m.idioma, category: m.categoria, components: comps }),
       });
       await db.from('modelos').update({ status: 'Em análise', motivo: null, atualizado_em: new Date().toISOString() }).eq('id', id);
       return json({ ok: true });
     }
 
     if (acao === 'atualizar_modelos') {
-      const r = await meta('/' + WABA + '/message_templates?fields=name,status,rejected_reason,language&limit=200');
-      const nomes: Record<string, string> = { APPROVED: 'Aprovado', PENDING: 'Em análise', REJECTED: 'Recusado', PAUSED: 'Pausado', DISABLED: 'Desativado' };
-      for (const t of r.data || []) {
-        await db.from('modelos').update({
-          status: nomes[t.status] || t.status,
-          motivo: t.rejected_reason && t.rejected_reason !== 'NONE' ? t.rejected_reason : null,
-          atualizado_em: new Date().toISOString(),
-        }).eq('nome_meta', t.name);
+      const nomes: Record<string, string> = { APPROVED: 'Aprovado', PENDING: 'Em análise', IN_APPEAL: 'Em análise', REJECTED: 'Recusado', PAUSED: 'Pausado', DISABLED: 'Desativado' };
+      for (let page = 1; page <= 5; page++) {
+        const r = await ycloud('/whatsapp/templates?limit=100&page=' + page + '&filter.wabaId=' + encodeURIComponent(WABA));
+        for (const t of r.items || []) {
+          await db.from('modelos').update({
+            status: nomes[t.status] || t.status,
+            motivo: t.reason && t.reason !== 'NONE' ? t.reason : null,
+            atualizado_em: new Date().toISOString(),
+          }).eq('nome_meta', t.name);
+        }
+        if (!r.items || r.items.length < 100) break;
       }
       return json({ ok: true });
     }
