@@ -2,12 +2,13 @@
 -- PAINEL CASA OLIVEIRA · passo 2
 -- Rodar DEPOIS de criar os usuários de Bernardo e Ane em
 -- Authentication > Users. Marca todos os usuários que existem
--- agora como equipe. O nome certo é ajustado no primeiro login.
+-- agora e ainda não têm perfil como equipe. O nome certo é ajustado
+-- no primeiro login. Pode rodar de novo quando a Ane for criada.
 -- ============================================================
 
 insert into perfis (id, nome, papel)
 select id, split_part(email, '@', 1), 'equipe' from auth.users
-on conflict (id) do update set papel = 'equipe';
+on conflict (id) do nothing;
 
 -- Página de apresentação: quem recebe o link pode ver as fotos e
 -- documentos dos imóveis públicos, e só deles.
