@@ -125,7 +125,7 @@ function telaEntrar() {
       location.hash = '#/hoje'; render();
     }).catch(function (err) {
       b.disabled = false; b.textContent = 'Entrar';
-      aviso(err && err.message === 'sem-acesso' ? 'Esse e-mail não tem acesso ao painel.' : 'E-mail ou senha não conferem.');
+      aviso(err && err.message === 'sem-acesso' ? 'Esse e-mail não tem acesso ao painel.' : 'Não consegui entrar. (' + ((err && (err.detalhe || err.message)) || 'erro desconhecido') + ')');
     });
   });
   var esq = $('#esqueci');

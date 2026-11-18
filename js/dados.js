@@ -220,7 +220,7 @@ function DadosSupabase() {
     eu: function () { return eu; },
     entrar: function (email, senha, nome) {
       return sb.auth.signInWithPassword({ email: email, password: senha }).then(function (r) {
-        if (r.error) throw new Error('senha');
+        if (r.error) { var e = new Error('senha'); e.detalhe = r.error.message || String(r.error); throw e; }
         return carregarPerfil(r.data.user, nome).then(function (p) { return carregarTudo().then(function () { return p; }); });
       }).catch(function (e) { if (e.message === 'sem-acesso') sb.auth.signOut(); throw e; });
     },
