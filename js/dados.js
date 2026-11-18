@@ -56,6 +56,17 @@ var SEMENTE = {
       mostrarEndereco: false, mostrarValor: false }
   ],
   // Pessoas fictícias, só para testar o envio
+  parceiros: [
+    { id: 'p1', nome: 'Carla (exemplo)', imobiliaria: 'Imobiliária Exemplo', email: 'carla@exemplo.com', whatsapp: '5548900000010',
+      acessoAte: null, imoveis: ['makai', 'highlands'], criadoEm: '2026-11-10T12:00:00Z' },
+    { id: 'p2', nome: 'Diego (exemplo)', imobiliaria: 'Corretor autônomo', email: 'diego@exemplo.com', whatsapp: '5548900000011',
+      acessoAte: '2026-11-30', imoveis: ['arcari'], criadoEm: '2026-11-12T12:00:00Z' }
+  ],
+  convites: [],
+  aberturas: [
+    { parceiroId: 'p1', imovelId: 'makai', arquivo: 'Book Makai Beachfront', criadoEm: '2026-11-17T14:20:00Z' },
+    { parceiroId: 'p1', imovelId: 'makai', arquivo: '', criadoEm: '2026-11-17T14:18:00Z' }
+  ],
   clientes: [
     { id: 'c1', nome: 'Marina (exemplo)', whatsapp: '5548900000001', email: '', idioma: 'pt', etapa: 'Novo', origem: 'Instagram', etiquetas: ['Serra'],
       aceitaWhatsapp: true, aceitaEmail: false, lembrarEm: null, criadoEm: '2026-11-18T12:00:00Z',
@@ -110,22 +121,60 @@ function DadosDemo() {
   var CHAVE = 'co_painel_v2', db, eu = null;
   try { db = JSON.parse(localStorage.getItem(CHAVE)); } catch (e) { db = null; }
   if (!db || !db.imoveis) db = JSON.parse(JSON.stringify(SEMENTE));
+  if (!db.parceiros) { db.parceiros = JSON.parse(JSON.stringify(SEMENTE.parceiros)); db.convites = []; db.aberturas = SEMENTE.aberturas.slice(); }
   try { eu = JSON.parse(sessionStorage.getItem('co_eu')); } catch (e) {}
   function salvar() { try { localStorage.setItem(CHAVE, JSON.stringify(db)); } catch (e) {} }
   function achar(id) { return db.imoveis.filter(function (i) { return i.id === id; })[0] || null; }
+  function parc(id) { return db.parceiros.filter(function (x) { return x.id === id; })[0] || null; }
 
   return {
     demo: true,
     iniciar: function () { return Promise.resolve(); },
     eu: function () { return eu; },
-    entrar: function (email, senha, nome) {
-      eu = { nome: nome || email.split('@')[0], email: email, papel: 'equipe' };
+    entrar: function (email, senha, nome, modo) {
+      if (modo === 'parceiro') {
+        var pa = db.parceiros[0];
+        eu = { id: pa.id, nome: pa.nome, email: pa.email, papel: 'parceiro', imobiliaria: pa.imobiliaria };
+      } else eu = { nome: nome || email.split('@')[0], email: email, papel: 'equipe' };
       try { sessionStorage.setItem('co_eu', JSON.stringify(eu)); } catch (e) {}
       return Promise.resolve(eu);
     },
     sair: function () { eu = null; try { sessionStorage.removeItem('co_eu'); } catch (e) {} return Promise.resolve(); },
-    imoveis: function () { return db.imoveis.slice(); },
+    imoveis: function () {
+      if (eu && eu.papel === 'parceiro') { var pa = parc(eu.id); return db.imoveis.filter(function (i) { return pa && pa.imoveis.indexOf(i.id) >= 0; }); }
+      return db.imoveis.slice();
+    },
     imovel: achar,
+    parceiros: function () { return db.parceiros.slice(); },
+    parceiro: parc,
+    convites: function () { return db.convites.filter(function (c) { return !c.usadoEm; }); },
+    convidar: function (c) {
+      c.id = 'cv' + Date.now(); c.criadoEm = new Date().toISOString(); db.convites.unshift(c); salvar(); return Promise.resolve(c);
+    },
+    cancelarConvite: function (id) { db.convites = db.convites.filter(function (c) { return c.id !== id; }); salvar(); return Promise.resolve(); },
+    salvarParceiro: function (pa) {
+      var i = db.parceiros.findIndex(function (x) { return x.id === pa.id; }); if (i >= 0) db.parceiros[i] = pa; salvar(); return Promise.resolve(pa);
+    },
+    aberturas: function (pid) {
+      return Promise.resolve(db.aberturas.filter(function (a) { return !pid || a.parceiroId === pid; }).sort(function (a, b) { return a.criadoEm < b.criadoEm ? 1 : -1; }));
+    },
+    registrarAbertura: function (imovelId, arquivo) {
+      if (eu && eu.papel === 'parceiro') { db.aberturas.push({ parceiroId: eu.id, imovelId: imovelId, arquivo: arquivo ? arquivo.nome : '', criadoEm: new Date().toISOString() }); salvar(); }
+      return Promise.resolve();
+    },
+    conviteInfo: function (id) {
+      var c = db.convites.filter(function (x) { return x.id === id && !x.usadoEm; })[0];
+      return Promise.resolve(c ? { nome: c.nome, email: c.email, imobiliaria: c.imobiliaria, imoveis: c.imoveis.map(function (i) { var im = achar(i); return im ? im.nome : i; }) } : null);
+    },
+    aceitarConvite: function (id, email, senha) {
+      var c = db.convites.filter(function (x) { return x.id === id; })[0];
+      if (!c || c.email.toLowerCase() !== email.toLowerCase()) return Promise.reject(new Error('convite'));
+      var pa = { id: 'p' + Date.now(), nome: c.nome, imobiliaria: c.imobiliaria, email: c.email, whatsapp: c.whatsapp, acessoAte: c.acessoAte, imoveis: c.imoveis.slice(), criadoEm: new Date().toISOString() };
+      db.parceiros.unshift(pa); c.usadoEm = pa.criadoEm; salvar();
+      eu = { id: pa.id, nome: pa.nome, email: pa.email, papel: 'parceiro', imobiliaria: pa.imobiliaria };
+      try { sessionStorage.setItem('co_eu', JSON.stringify(eu)); } catch (e) {}
+      return Promise.resolve(eu);
+    },
     clientes: function () { return db.clientes.slice(); },
     cliente: function (id) { return db.clientes.filter(function (c) { return c.id === id; })[0] || null; },
     salvarCliente: function (c) {
@@ -168,7 +217,7 @@ function DadosDemo() {
 function DadosSupabase() {
   var sb = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey);
   var BUCKET = 'materiais';
-  var eu = null, imoveis = [], clientes = [];
+  var eu = null, imoveis = [], clientes = [], parceiros = [], convites = [];
 
   function deLinha(r, arqs, urls) {
     var meus = arqs.filter(function (a) { return a.imovel_id === r.id; });
@@ -207,10 +256,20 @@ function DadosSupabase() {
     return Promise.all([
       sb.from('imoveis').select('*').order('criado_em', { ascending: false }),
       sb.from('arquivos').select('*').order('ordem').order('criado_em'),
-      sb.from('clientes').select('*').order('criado_em', { ascending: false })
+      equipe() ? sb.from('clientes').select('*').order('criado_em', { ascending: false }) : Promise.resolve({ data: [] }),
+      equipe() ? sb.from('perfis').select('*').eq('papel', 'parceiro').order('criado_em', { ascending: false }) : Promise.resolve({ data: [] }),
+      equipe() ? sb.from('acessos_parceiro').select('*') : Promise.resolve({ data: [] }),
+      equipe() ? sb.from('convites').select('*').is('usado_em', null).order('criado_em', { ascending: false }) : Promise.resolve({ data: [] })
     ]).then(function (rs) {
-      var ims = falhou(rs[0]), arqs = falhou(rs[1]), cls = falhou(rs[2]);
+      var ims = falhou(rs[0]), arqs = falhou(rs[1]), cls = falhou(rs[2]), pfs = falhou(rs[3]), acs = falhou(rs[4]), cvs = falhou(rs[5]);
       clientes = cls.map(clienteDeLinha);
+      parceiros = pfs.map(function (p) {
+        return { id: p.id, nome: p.nome, imobiliaria: p.imobiliaria || '', whatsapp: p.whatsapp || '', acessoAte: p.acesso_ate, criadoEm: p.criado_em,
+          imoveis: acs.filter(function (a) { return a.parceiro_id === p.id; }).map(function (a) { return a.imovel_id; }) };
+      });
+      convites = cvs.map(function (c) {
+        return { id: c.id, nome: c.nome, email: c.email, imobiliaria: c.imobiliaria || '', whatsapp: c.whatsapp || '', imoveis: c.imoveis || [], acessoAte: c.acesso_ate, criadoEm: c.criado_em };
+      });
       var caminhos = arqs.filter(function (a) { return a.tipo === 'foto'; }).map(function (a) { return a.caminho; });
       var p = caminhos.length ? sb.storage.from(BUCKET).createSignedUrls(caminhos, 60 * 60 * 12) : Promise.resolve({ data: [] });
       return p.then(function (r) {
@@ -223,8 +282,10 @@ function DadosSupabase() {
   function carregarPerfil(user, nomeEscolhido) {
     return sb.from('perfis').select('*').eq('id', user.id).maybeSingle().then(function (r) {
       if (r.error) throw r.error;
-      if (!r.data || r.data.papel !== 'equipe') { eu = null; throw new Error('sem-acesso'); }
-      eu = { id: user.id, nome: r.data.nome, email: user.email, papel: r.data.papel };
+      if (!r.data) { eu = null; throw new Error('sem-acesso'); }
+      if (r.data.papel === 'parceiro' && r.data.acesso_ate && r.data.acesso_ate < hoje()) { eu = null; throw new Error('expirado'); }
+      eu = { id: user.id, nome: r.data.nome, email: user.email, papel: r.data.papel, imobiliaria: r.data.imobiliaria || '' };
+      if (eu.papel !== 'equipe') return eu;
       // Primeiro login: troca o nome provisório (parte do e-mail) pelo nome escolhido na tela
       if (nomeEscolhido && r.data.nome !== nomeEscolhido && CONFIG.equipe.indexOf(r.data.nome) < 0) {
         eu.nome = nomeEscolhido;
@@ -234,6 +295,8 @@ function DadosSupabase() {
     });
   }
   function achar(id) { return imoveis.filter(function (i) { return i.id === id; })[0] || null; }
+  function equipe() { return eu && eu.papel === 'equipe'; }
+  function hoje() { var d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); }
   function enviar(im, arquivo, tipo, nome) {
     var ext = (arquivo.name || 'foto.jpg').split('.').pop().toLowerCase();
     var caminho = im.id + '/' + Date.now() + '-' + Math.random().toString(36).slice(2, 8) + '.' + (tipo === 'foto' ? 'jpg' : ext);
@@ -257,7 +320,53 @@ function DadosSupabase() {
       return sb.auth.signInWithPassword({ email: email, password: senha }).then(function (r) {
         if (r.error) { var e = new Error('senha'); e.detalhe = r.error.message || String(r.error); throw e; }
         return carregarPerfil(r.data.user, nome).then(function (p) { return carregarTudo().then(function () { return p; }); });
-      }).catch(function (e) { if (e.message === 'sem-acesso') sb.auth.signOut(); throw e; });
+      }).catch(function (e) { if (e.message === 'sem-acesso' || e.message === 'expirado') sb.auth.signOut(); throw e; });
+    },
+    parceiros: function () { return parceiros.slice(); },
+    parceiro: function (id) { return parceiros.filter(function (x) { return x.id === id; })[0] || null; },
+    convites: function () { return convites.slice(); },
+    convidar: function (c) {
+      return sb.from('convites').insert({ email: c.email.trim().toLowerCase(), nome: c.nome, imobiliaria: c.imobiliaria || null, whatsapp: c.whatsapp || null,
+        imoveis: c.imoveis, acesso_ate: c.acessoAte || null, criado_por: eu && eu.id }).select().single()
+        .then(falhou).then(function (l) { c.id = l.id; c.criadoEm = l.criado_em; convites.unshift(c); return c; });
+    },
+    cancelarConvite: function (id) {
+      return sb.from('convites').delete().eq('id', id).then(falhou).then(function () { convites = convites.filter(function (c) { return c.id !== id; }); });
+    },
+    salvarParceiro: function (pa) {
+      var antes = (this.parceiro(pa.id) || { imoveis: [] }).imoveis;
+      var tirar = antes.filter(function (i) { return pa.imoveis.indexOf(i) < 0; });
+      var por = pa.imoveis.filter(function (i) { return antes.indexOf(i) < 0; });
+      return sb.from('perfis').update({ acesso_ate: pa.acessoAte || null, imobiliaria: pa.imobiliaria || null, whatsapp: pa.whatsapp || null }).eq('id', pa.id).then(falhou)
+        .then(function () { return tirar.length ? sb.from('acessos_parceiro').delete().eq('parceiro_id', pa.id).in('imovel_id', tirar).then(falhou) : null; })
+        .then(function () { return por.length ? sb.from('acessos_parceiro').insert(por.map(function (i) { return { parceiro_id: pa.id, imovel_id: i }; })).then(falhou) : null; })
+        .then(function () { var i = parceiros.findIndex(function (x) { return x.id === pa.id; }); if (i >= 0) parceiros[i] = pa; return pa; });
+    },
+    aberturas: function (pid) {
+      var q = sb.from('aberturas').select('imovel_id, criado_em, quem, arquivos(nome)').not('quem', 'is', null).order('criado_em', { ascending: false }).limit(200);
+      if (pid) q = q.eq('quem', pid);
+      return q.then(falhou).then(function (l) {
+        return l.map(function (a) { return { parceiroId: a.quem, imovelId: a.imovel_id, arquivo: a.arquivos ? a.arquivos.nome : '', criadoEm: a.criado_em }; });
+      });
+    },
+    registrarAbertura: function (imovelId, arquivo) {
+      if (!eu || eu.papel !== 'parceiro') return Promise.resolve();
+      return sb.from('aberturas').insert({ imovel_id: imovelId, arquivo_id: arquivo && arquivo.id || null, quem: eu.id, origem: 'parceiro' }).then(function () {});
+    },
+    conviteInfo: function (id) {
+      return sb.rpc('convite_info', { p_id: id }).then(function (r) { return r.error ? null : r.data; });
+    },
+    aceitarConvite: function (id, email, senha) {
+      return sb.auth.signUp({ email: email, password: senha, options: { data: { convite: id } } }).then(function (r) {
+        if (r.error) { var e = new Error('cadastro'); e.detalhe = r.error.message; throw e; }
+        if (!r.data.session) {
+          return sb.auth.signInWithPassword({ email: email, password: senha }).then(function (x) {
+            if (x.error) { var e2 = new Error('confirmar'); e2.detalhe = x.error.message; throw e2; }
+            return x.data.user;
+          });
+        }
+        return r.data.user;
+      }).then(function (user) { return carregarPerfil(user).then(function (p) { return carregarTudo().then(function () { return p; }); }); });
     },
     sair: function () { eu = null; imoveis = []; return sb.auth.signOut(); },
     recuperarSenha: function (email) {

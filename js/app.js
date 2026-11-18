@@ -49,14 +49,12 @@ var MENU = [
   { id: 'hoje', nome: 'Hoje', ic: 'hoje' },
   { id: 'imoveis', nome: 'Imóveis', ic: 'casa' },
   { id: 'clientes', nome: 'Clientes', ic: 'pessoas' },
-  { id: 'parceiros', nome: 'Parceiros', ic: 'parceiro', etapa: 3 },
+  { id: 'parceiros', nome: 'Parceiros', ic: 'parceiro' },
   { id: 'comunicados', nome: 'Comunicados', ic: 'megafone', etapa: 4 },
   { id: 'email', nome: 'E-mail', ic: 'carta', etapa: 5 }
 ];
 
 var BREVE = {
-  parceiros: { titulo: 'Portal de parceiros', texto: 'Corretores parceiros com acesso só aos empreendimentos que vocês liberarem.',
-    itens: ['Convite por e-mail, com login próprio', 'Escolher os empreendimentos de cada parceiro', 'Fotos e PDFs com marca d\'água e nome do corretor', 'Acesso com data para expirar e aviso de quem abriu'] },
   comunicados: { titulo: 'Comunicados de WhatsApp', texto: 'Mensagens para um grupo inteiro, na hora ou agendadas, pela API oficial da Meta.',
     itens: ['Escolher o grupo por etiqueta, etapa ou empreendimento', 'Modelos aprovados em português e inglês', 'Resumo antes de enviar: pessoas, modelo e custo', 'Relatório de entregues, lidas e respostas'] },
   email: { titulo: 'E-mail', texto: 'Listas e envios com a identidade da casa.',
@@ -65,7 +63,7 @@ var BREVE = {
 
 /* ---------- sessão ---------- */
 var EU = null;
-function sair() { Dados.sair().then(function () { EU = null; location.hash = ''; render(); }); }
+function sair() { if (EU && EU.papel === 'parceiro') modoLogin = 'parceiro'; Dados.sair().then(function () { EU = null; location.hash = ''; render(); }); }
 function lembrar(nome, email) { try { if (email) localStorage.setItem('co_email_' + nome, email); return localStorage.getItem('co_email_' + nome) || ''; } catch (e) { return email || ''; } }
 
 /* ---------- aviso ---------- */
@@ -93,7 +91,9 @@ function escFecha(e) { if (e.key === 'Escape') fecharJanela(); }
 /* ============================================================
    ENTRAR
    ============================================================ */
+var modoLogin = 'equipe';
 function telaEntrar() {
+  if (modoLogin === 'parceiro') { telaEntrarParceiro(); return; }
   var sel = 0;
   try { sel = Math.max(0, CONFIG.equipe.indexOf(localStorage.getItem('co_ultimo'))); } catch (e) {}
   $('#app').innerHTML =
@@ -111,7 +111,9 @@ function telaEntrar() {
       '</form>' +
       (Dados.demo ? '' : '<button type="button" class="btn btn-linha btn-pequeno" style="margin-top:14px" id="esqueci">Esqueci minha senha</button>') +
       (Dados.demo ? '<div class="aviso-demo">Modo demonstração. Qualquer senha entra, e os dados ficam só neste navegador.</div>' : '') +
+      '<button type="button" class="link-suave" id="sou-parceiro" style="margin-top:18px">Sou corretor parceiro</button>' +
     '</div></div>';
+  $('#sou-parceiro').addEventListener('click', function () { modoLogin = 'parceiro'; telaEntrar(); });
 
   $$('.conta').forEach(function (b) {
     b.addEventListener('click', function () {
@@ -131,7 +133,41 @@ function telaEntrar() {
       location.hash = '#/hoje'; render();
     }).catch(function (err) {
       b.disabled = false; b.textContent = 'Entrar';
-      aviso(err && err.message === 'sem-acesso' ? 'Esse e-mail não tem acesso ao painel.' : 'Não consegui entrar. (' + ((err && (err.detalhe || err.message)) || 'erro desconhecido') + ')');
+      aviso(err && err.message === 'sem-acesso' ? 'Esse e-mail não tem acesso ao painel.' : err && err.message === 'expirado' ? 'O seu acesso terminou. Fale com a Casa Oliveira.' : 'Não consegui entrar. (' + ((err && (err.detalhe || err.message)) || 'erro desconhecido') + ')');
+    });
+  });
+  var esq = $('#esqueci');
+  if (esq) esq.addEventListener('click', function () {
+    var email = $('#email').value.trim();
+    if (!email) { aviso('Escreva seu e-mail primeiro.'); return; }
+    Dados.recuperarSenha(email).then(function () { aviso('Mandamos um link para ' + email + '.'); }, function () { aviso('Não deu certo agora. Tente de novo.'); });
+  });
+}
+
+function telaEntrarParceiro() {
+  $('#app').innerHTML =
+    '<div class="login"><div class="login-caixa entra">' +
+      '<img class="logo" src="assets/logo.png" alt="Casa Oliveira">' +
+      '<div><span class="rotulo">Portal de parceiros</span><h1>Olá, corretor</h1><p class="suave">Entre com o e-mail e a senha que você criou pelo convite.</p></div>' +
+      '<form id="f-entrar">' +
+        '<label class="campo"><span class="rotulo">E-mail</span><input class="entrada" id="email" type="email" autocomplete="username" placeholder="seu@email.com" value="' + esc(lembrar('parceiro')) + '"></label>' +
+        '<label class="campo"><span class="rotulo">Senha</span><input class="entrada" id="senha" type="password" autocomplete="current-password" placeholder="Sua senha"></label>' +
+        '<button class="btn btn-verde btn-bloco" type="submit" id="b-entrar">Entrar</button>' +
+      '</form>' +
+      (Dados.demo ? '<div class="aviso-demo">Modo demonstração: entra como a parceira de exemplo.</div>' : '<button type="button" class="btn btn-linha btn-pequeno" style="margin-top:14px" id="esqueci">Esqueci minha senha</button>') +
+      '<button type="button" class="link-suave" id="sou-equipe" style="margin-top:18px">Sou da equipe Casa Oliveira</button>' +
+    '</div></div>';
+  $('#sou-equipe').addEventListener('click', function () { modoLogin = 'equipe'; telaEntrar(); });
+  $('#f-entrar').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var email = $('#email').value.trim().toLowerCase(), senha = $('#senha').value;
+    if (!email || !senha) { aviso('Preencha e-mail e senha.'); return; }
+    var b = $('#b-entrar'); b.disabled = true; b.textContent = 'Entrando...';
+    Dados.entrar(email, senha, null, 'parceiro').then(function (p) {
+      EU = p; lembrar('parceiro', email); location.hash = '#/hoje'; render();
+    }).catch(function (err) {
+      b.disabled = false; b.textContent = 'Entrar';
+      aviso(err && err.message === 'expirado' ? 'O seu acesso terminou. Fale com a Casa Oliveira.' : err && err.message === 'sem-acesso' ? 'Esse e-mail ainda não tem acesso. Use o link do convite.' : 'E-mail ou senha não conferem.');
     });
   });
   var esq = $('#esqueci');
@@ -146,11 +182,12 @@ function telaEntrar() {
    CASCA (menu lateral no computador, barra embaixo no celular)
    ============================================================ */
 function casca(atual, miolo) {
-  var lat = MENU.map(function (m) {
+  var menu = ehParceiro() ? [{ id: 'hoje', nome: 'Empreendimentos', ic: 'casa' }] : MENU;
+  var lat = menu.map(function (m) {
     return '<a href="#/' + m.id + '" class="' + (m.id === atual ? 'ativo' : '') + '">' + I[m.ic] + '<span>' + m.nome + '</span>' +
       (m.etapa ? '<span class="breve">Em breve</span>' : '') + '</a>';
   }).join('');
-  var baixo = MENU.filter(function (m) { return m.id !== 'email'; }).map(function (m) {
+  var baixo = (ehParceiro() ? [] : menu).filter(function (m) { return m.id !== 'email'; }).map(function (m) {
     return '<a href="#/' + m.id + '" class="' + (m.id === atual ? 'ativo' : '') + '">' + I[m.ic] + '<span>' + m.nome + '</span></a>';
   }).join('');
   return '<div class="casca">' +
@@ -161,7 +198,7 @@ function casca(atual, miolo) {
       (Dados.demo ? '<div class="faixa-demo"><span class="rotulo">Demonstração</span><span>Dados de exemplo. Nada aqui sai do seu navegador.</span></div>' : '') +
       miolo +
     '</main>' +
-    '<nav class="barra-baixo">' + baixo + '</nav>' +
+    (baixo ? '<nav class="barra-baixo">' + baixo + '</nav>' : '') +
   '</div>';
 }
 
@@ -687,6 +724,308 @@ function ligarCliente(id) {
 
 
 /* ============================================================
+   PARCEIROS (visão da equipe)
+   ============================================================ */
+var PRAZOS = [[30, '30 dias'], [90, '3 meses'], [180, '6 meses'], [0, 'Sem prazo']];
+function ehParceiro() { return EU && EU.papel === 'parceiro'; }
+function nomesImoveis(ids) {
+  return ids.map(function (i) { var im = Dados.imovel(i); return im ? im.nome : null; }).filter(Boolean);
+}
+function situacao(pa) {
+  if (!pa.imoveis.length) return ['Sem acesso', 'var(--creme)'];
+  if (pa.acessoAte && pa.acessoAte < hojeISO()) return ['Expirado', '#E9E4DC'];
+  return [pa.acessoAte ? 'Até ' + dataCurta(pa.acessoAte) : 'Ativo', 'var(--t-verde)'];
+}
+function linkConvite(c) {
+  var base = Dados.demo ? location.href.replace(/[#?].*$/, '') : CONFIG.site + '/';
+  return base + '#/convite/' + c.id;
+}
+function msgConvite(c) {
+  var l = nomesImoveis(c.imoveis);
+  return 'Olá, ' + primeiroNome(c.nome) + '. Aqui é a família Casa Oliveira.\n\n' +
+    'Liberamos para você o material de ' + (l.length > 1 ? l.slice(0, -1).join(', ') + ' e ' + l[l.length - 1] : l[0] || 'nossos empreendimentos') + ': fotos, books, plantas e tabelas.\n\n' +
+    'Crie sua senha neste link, com o e-mail ' + c.email + ':\n' + linkConvite(c) + '\n\n' + CONFIG.assinatura;
+}
+function avatarDe(nome, extra) { return '<span class="avatar' + (extra || '') + '">' + esc((primeiroNome(nome) || '?')[0]) + '</span>'; }
+
+function telaParceiros() {
+  var ps = Dados.parceiros(), cs = Dados.convites();
+  return '<div class="entra">' +
+    '<div class="topo"><div><span class="rotulo">Portal de parceiros</span><h1>Corretores parceiros</h1></div>' +
+      '<div class="topo-acoes"><button class="btn btn-verde" type="button" data-convidar>' + I.mais + 'Convidar parceiro</button></div></div>' +
+    '<p class="suave" style="max-width:640px;margin:-8px 0 24px">Cada corretor tem login próprio e vê só os empreendimentos que vocês liberarem, pelo tempo que vocês escolherem. Tudo que ele abre ou baixa fica registrado aqui.</p>' +
+    (cs.length ? '<span class="rotulo" style="display:block;margin-bottom:12px">Convites esperando a senha</span><div class="lista-cli" style="margin-bottom:28px">' +
+      cs.map(function (c) {
+        return '<div class="linha-cli">' + avatarDe(c.nome, ' ane') +
+          '<div class="cli-nome"><div>' + esc(c.nome) + '</div><small>' + esc(c.email) + ' · enviado ' + quando(c.criadoEm) + '</small></div>' +
+          '<button class="btn btn-linha btn-pequeno" type="button" data-ver-convite="' + esc(c.id) + '">Ver convite</button></div>';
+      }).join('') + '</div>' : '') +
+    (ps.length ? '<span class="rotulo" style="display:block;margin-bottom:12px">Com acesso</span><div class="grade-parc">' + ps.map(function (pa) {
+      var st = situacao(pa), ims = nomesImoveis(pa.imoveis);
+      return '<a class="cartao-parc" href="#/parceiro/' + encodeURIComponent(pa.id) + '">' +
+        '<div class="cli-topo">' + avatarDe(pa.nome) + '<div class="cli-nome"><div>' + esc(pa.nome) + '</div><small>' + esc(pa.imobiliaria || 'Corretor parceiro') + '</small></div>' +
+        '<span class="selo" style="background:' + st[1] + '">' + esc(st[0]) + '</span></div>' +
+        '<div class="tags">' + (ims.length ? ims.map(function (n) { return '<span class="tag">' + esc(n) + '</span>'; }).join('') : '<span class="suave" style="font-size:13px">Nenhum empreendimento liberado</span>') + '</div></a>';
+    }).join('') + '</div>' :
+    (cs.length ? '' : '<div class="breve-tela"><div class="ilustra">' + I.parceiro + '</div><h2>Nenhum parceiro ainda</h2>' +
+      '<p class="suave">Convide um corretor, escolha os empreendimentos e mande o link pelo WhatsApp. Ele cria a senha e já vê o material.</p>' +
+      '<button class="btn btn-verde" style="margin-top:20px" type="button" data-convidar>' + I.mais + 'Convidar o primeiro</button></div>')) +
+  '</div>';
+}
+
+function escolhaImoveis(sel) {
+  return '<div class="marcas">' + Dados.imoveis().map(function (im) {
+    return '<label class="marca"><input type="checkbox" name="im" value="' + esc(im.id) + '"' + (sel.indexOf(im.id) >= 0 ? ' checked' : '') + '>' + esc(im.nome) + '</label>';
+  }).join('') + '</div>';
+}
+function escolhaPrazo(atual) {
+  return '<div class="filtros" style="margin:0" id="prazos">' + PRAZOS.map(function (p) {
+    return '<button type="button" class="chip' + (p[0] === atual ? ' ativo' : '') + '" data-prazo="' + p[0] + '">' + p[1] + '</button>';
+  }).join('') + '</div>';
+}
+function ligarPrazo(j, est) {
+  $$('[data-prazo]', j).forEach(function (b) {
+    b.addEventListener('click', function () { est.prazo = +b.dataset.prazo; $$('[data-prazo]', j).forEach(function (x) { x.classList.toggle('ativo', x === b); }); });
+  });
+}
+
+function janelaConvite() {
+  var est = { prazo: 90 };
+  abrirJanela(
+    '<span class="rotulo">Convidar parceiro</span><h2>Quem vai receber o material?</h2>' +
+    '<form id="f-conv" class="grade-form" style="margin-top:20px">' +
+      '<label class="campo"><span class="rotulo">Nome</span><input class="entrada" name="nome" required></label>' +
+      '<label class="campo"><span class="rotulo">Imobiliária</span><input class="entrada" name="imobiliaria" placeholder="Ou corretor autônomo"></label>' +
+      '<label class="campo"><span class="rotulo">E-mail para o login</span><input class="entrada" name="email" type="email" required></label>' +
+      '<label class="campo"><span class="rotulo">WhatsApp com DDD</span><input class="entrada" name="whatsapp" inputmode="tel" placeholder="48 99999 9999"></label>' +
+      '<div class="campo inteiro"><span class="rotulo">Empreendimentos liberados</span>' + escolhaImoveis([]) + '</div>' +
+      '<div class="campo inteiro"><span class="rotulo">Por quanto tempo</span>' + escolhaPrazo(90) + '</div>' +
+      '<div class="fim inteiro"><button class="btn btn-linha" type="button" data-fechar>Cancelar</button><button class="btn btn-verde" type="submit">Criar convite</button></div>' +
+    '</form>',
+    function (j) {
+      ligarPrazo(j, est);
+      var f = $('#f-conv', j);
+      f.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var d = new FormData(f), ims = d.getAll('im');
+        if (!ims.length) { aviso('Escolha pelo menos um empreendimento.'); return; }
+        var num = soNumeros(d.get('whatsapp')); if (num && num.length <= 11) num = '55' + num;
+        var c = { nome: d.get('nome').trim(), imobiliaria: d.get('imobiliaria').trim(), email: d.get('email').trim().toLowerCase(), whatsapp: num,
+          imoveis: ims, acessoAte: est.prazo ? maisDias(est.prazo) : null };
+        var btn = $('button[type=submit]', f); btn.disabled = true; btn.textContent = 'Criando...';
+        Dados.convidar(c).then(function (s) { fecharJanela(); render(); janelaVerConvite(s); },
+          function () { btn.disabled = false; btn.textContent = 'Criar convite'; aviso('Não consegui criar o convite. Tente de novo.'); });
+      });
+    });
+}
+
+function janelaVerConvite(c) {
+  var l = linkConvite(c), msg = msgConvite(c);
+  abrirJanela(
+    '<span class="rotulo">Convite pronto</span><h2>Agora é só mandar para ' + esc(primeiroNome(c.nome)) + '</h2>' +
+    '<p class="suave" style="margin-top:8px">O link vale por 30 dias e só funciona com o e-mail ' + esc(c.email) + '.</p>' +
+    '<div class="passo"><span class="rotulo">Mensagem</span><div class="previa">' + esc(msg) + '</div></div>' +
+    '<div class="fim">' +
+      '<button class="btn btn-linha" type="button" id="cancelar-conv">Cancelar convite</button>' +
+      '<button class="btn btn-linha" type="button" id="copiar-conv">' + I.link + 'Copiar link</button>' +
+      '<a class="btn btn-wa" target="_blank" rel="noopener" href="https://wa.me/' + esc(c.whatsapp || '') + '?text=' + encodeURIComponent(msg) + '">' + I.wa + 'Enviar pelo WhatsApp</a>' +
+    '</div>',
+    function (j) {
+      $('#copiar-conv', j).addEventListener('click', function () {
+        (navigator.clipboard ? navigator.clipboard.writeText(l) : Promise.reject()).then(function () { aviso('Link copiado.'); }, function () { prompt('Copie o link:', l); });
+      });
+      var cc = $('#cancelar-conv', j);
+      cc.addEventListener('click', function () {
+        if (!cc.dataset.ok) { cc.dataset.ok = 1; cc.textContent = 'Toque de novo para cancelar'; return; }
+        Dados.cancelarConvite(c.id).then(function () { fecharJanela(); aviso('Convite cancelado.'); render(); }, function () { aviso('Não consegui cancelar.'); });
+      });
+    });
+}
+
+function telaParceiro(id) {
+  var pa = Dados.parceiro(id);
+  if (!pa) return '<a class="voltar" href="#/parceiros">' + I.voltar + 'Parceiros</a><div class="breve-tela"><h2>Parceiro não encontrado</h2></div>';
+  var st = situacao(pa), prazo = pa.acessoAte ? 'Acesso até ' + dataCurta(pa.acessoAte) : 'Acesso sem prazo';
+  return '<div class="entra">' +
+    '<a class="voltar" href="#/parceiros">' + I.voltar + 'Todos os parceiros</a>' +
+    '<section class="ficha-cli">' + avatarDe(pa.nome, ' grande') +
+      '<div style="flex:1;min-width:0"><span class="rotulo">' + esc(pa.imobiliaria || 'Corretor parceiro') + ' · desde ' + esc(dataCurta(pa.criadoEm)) + '</span><h1>' + esc(pa.nome) + '</h1>' +
+      '<span class="selo" style="background:' + st[1] + '">' + esc(st[0]) + '</span></div></section>' +
+    (pa.whatsapp ? '<div class="acoes-imovel"><a class="btn btn-wa" target="_blank" rel="noopener" href="https://wa.me/' + esc(pa.whatsapp) + '?text=' + encodeURIComponent('Olá, ' + primeiroNome(pa.nome) + '. Aqui é a família Casa Oliveira.') + '">' + I.wa + 'Conversar no WhatsApp</a></div>' : '') +
+    '<div class="duas"><div>' +
+      '<section class="painel"><span class="rotulo">Empreendimentos liberados</span><div class="privacidade">' +
+        Dados.imoveis().map(function (im) {
+          return '<label class="alavanca"><input type="checkbox" data-acesso="' + esc(im.id) + '"' + (pa.imoveis.indexOf(im.id) >= 0 ? ' checked' : '') + '><span class="trilho"></span>' + esc(im.nome) + '</label>';
+        }).join('') + '</div></section>' +
+      '<section class="painel"><span class="rotulo">O que abriu e baixou</span><div id="aberturas" class="notas"><p class="suave">Carregando...</p></div></section>' +
+    '</div><div>' +
+      '<section class="painel"><span class="rotulo">Prazo</span><p>' + esc(prazo) + '</p><p class="suave" style="font-size:13px;margin:4px 0 12px">Mudar para, a partir de hoje:</p>' +
+        '<div class="filtros" style="margin:0">' + PRAZOS.map(function (p) { return '<button type="button" class="chip" data-novo-prazo="' + p[0] + '">' + p[1] + '</button>'; }).join('') + '</div></section>' +
+      '<section class="painel"><span class="rotulo">Tirar o acesso</span><p class="suave" style="margin-bottom:12px">Ele deixa de ver tudo na hora. Dá para liberar de novo depois.</p>' +
+        '<button class="btn btn-linha" type="button" id="tirar">Tirar acesso de ' + esc(primeiroNome(pa.nome)) + '</button></section>' +
+    '</div></div></div>';
+}
+function ligarParceiro(id) {
+  var pa = Dados.parceiro(id); if (!pa) return;
+  function salvarCom(mudar, msg) {
+    var c = JSON.parse(JSON.stringify(pa)); mudar(c);
+    return Dados.salvarParceiro(c).then(function () { render(); if (msg) aviso(msg); }, function () { aviso('Não consegui salvar.'); render(); });
+  }
+  $$('[data-acesso]').forEach(function (cb) {
+    cb.addEventListener('change', function () {
+      var i = cb.dataset.acesso, on = cb.checked, im = Dados.imovel(i);
+      salvarCom(function (c) { c.imoveis = on ? c.imoveis.concat([i]) : c.imoveis.filter(function (x) { return x !== i; }); },
+        (on ? 'Liberado: ' : 'Tirado: ') + (im ? im.nome : i));
+    });
+  });
+  $$('[data-novo-prazo]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var n = +b.dataset.novoPrazo;
+      salvarCom(function (c) { c.acessoAte = n ? maisDias(n) : null; }, n ? 'Acesso até ' + dataCurta(maisDias(n)) + '.' : 'Acesso sem prazo.');
+    });
+  });
+  var t = $('#tirar');
+  t.addEventListener('click', function () {
+    if (!t.dataset.ok) { t.dataset.ok = 1; t.textContent = 'Toque de novo para confirmar'; return; }
+    salvarCom(function (c) { c.imoveis = []; }, 'Acesso tirado.');
+  });
+  Dados.aberturas(id).then(function (l) {
+    var box = $('#aberturas'); if (!box) return;
+    box.innerHTML = l.length ? l.slice(0, 30).map(function (a) {
+      var im = Dados.imovel(a.imovelId);
+      return '<div class="nota"><small>' + esc(dataCurta(a.criadoEm)) + ' · ' + esc(new Date(a.criadoEm).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })) + '</small><p>' +
+        (a.arquivo ? 'Baixou ' + esc(a.arquivo) : 'Abriu ' + esc(im ? im.nome : a.imovelId)) + '</p></div>';
+    }).join('') : '<p class="suave">Ainda não abriu nada.</p>';
+  }, function () { var box = $('#aberturas'); if (box) box.innerHTML = '<p class="suave">Não consegui carregar.</p>'; });
+}
+
+/* ============================================================
+   PORTAL DO PARCEIRO (visão do corretor)
+   ============================================================ */
+function telaParceiroInicio() {
+  var ims = Dados.imoveis();
+  return '<div class="entra">' +
+    '<section class="ola"><span class="rotulo">Portal de parceiros · Casa Oliveira</span><h1>' + saudacao() + ', ' + esc(primeiroNome(EU.nome)) + '</h1>' +
+      '<p>' + (ims.length ? 'Aqui estão os empreendimentos liberados para você. Fotos, books, plantas e tabelas, sempre na versão mais recente.' : 'Ainda não há empreendimentos liberados para você. Fale com a Casa Oliveira.') + '</p>' + I.ramo + '</section>' +
+    '<div class="grade">' + ims.map(cartaoImovel).join('') + '</div>' +
+    '<p class="suave" style="margin-top:28px;font-size:14px">Dúvidas? <a href="https://wa.me/' + esc(CONFIG.whatsapp) + '?text=' + encodeURIComponent('Olá, família Casa Oliveira. Aqui é ' + primeiroNome(EU.nome) + ', do portal de parceiros.') + '" target="_blank" rel="noopener">Fale com a Ane e o Bernardo no WhatsApp</a>.</p>' +
+  '</div>';
+}
+function telaImovelParceiro(id) {
+  var im = Dados.imovel(id);
+  if (!im) return '<a class="voltar" href="#/hoje">' + I.voltar + 'Empreendimentos</a><div class="breve-tela"><h2>Este empreendimento não está liberado para você</h2></div>';
+  return '<div class="entra">' +
+    '<a class="voltar" href="#/hoje">' + I.voltar + 'Empreendimentos</a>' +
+    '<section class="capa" style="background-image:url(\'' + esc(im.fotos[0] || '') + '\')"><div class="sobre">' +
+      '<span class="selo ' + classeStatus(im.status) + '">' + esc(im.status) + '</span>' +
+      '<h1>' + esc(im.nome) + '</h1><p>' + esc(im.local) + '</p></div></section>' +
+    '<div class="duas"><div>' +
+      '<section class="painel"><div class="painel-topo"><span class="rotulo">Sobre</span>' +
+        '<div class="idiomas"><button type="button" data-idioma="0" class="' + (idiomaFicha === 0 ? 'ativo' : '') + '">PT</button><button type="button" data-idioma="1" class="' + (idiomaFicha === 1 ? 'ativo' : '') + '">EN</button></div></div>' +
+        '<p>' + esc(im.texto[idiomaFicha] || '') + '</p>' +
+        (im.fatos.length ? '<div class="fatos">' + im.fatos.map(function (f) { return '<div class="fato"><div class="k">' + esc(f[0]) + '</div><div class="v">' + esc(f[1]) + '</div></div>'; }).join('') + '</div>' : '') +
+        (im.valores ? '<p style="margin-top:16px"><span class="rotulo">Valores</span><br>' + esc(im.valores) + '</p>' : '') +
+        (im.endereco ? '<p style="margin-top:12px"><span class="rotulo">Endereço</span><br>' + esc(im.endereco) + '</p>' : '') +
+      '</section>' +
+      '<section class="painel"><div class="painel-topo"><span class="rotulo">Fotos · ' + im.fotos.length + '</span></div><div class="fotos">' +
+        im.fotos.map(function (f, i) { return '<button type="button" class="ft ft-baixar" data-foto="' + i + '" style="background-image:url(\'' + esc(f) + '\')" aria-label="Baixar foto">' + I.baixar + '</button>'; }).join('') +
+      '</div><p class="suave" style="font-size:13px;margin-top:10px">Toque numa foto para baixar. Ela sai com a marca da Casa Oliveira e o seu nome.</p></section>' +
+    '</div><div>' +
+      '<section class="painel"><div class="painel-topo"><span class="rotulo">Documentos · ' + im.docs.length + '</span></div><div class="docs">' +
+        (im.docs.length ? im.docs.map(function (d, i) {
+          return '<div class="doc"><span class="ic ' + esc(d.tipo) + '">' + esc((TIPOS_DOC[d.tipo] || 'Doc').slice(0, 4)) + '</span>' +
+            '<div class="nome"><div>' + esc(d.nome) + '</div><small>' + esc(TIPOS_DOC[d.tipo] || 'Documento') + '</small></div>' +
+            '<button class="btn btn-linha btn-redondo btn-pequeno" style="width:40px" type="button" aria-label="Baixar" data-baixar="' + i + '">' + I.baixar + '</button></div>';
+        }).join('') : '<p class="suave">Nenhum documento ainda.</p>') + '</div></section>' +
+    '</div></div></div>';
+}
+function baixarFotoComMarca(url, nomeArq) {
+  return new Promise(function (ok, falha) {
+    var img = new Image(); img.crossOrigin = 'anonymous';
+    img.onload = function () {
+      try {
+        var c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
+        var x = c.getContext('2d'); x.drawImage(img, 0, 0);
+        var t = Math.max(14, Math.round(c.width / 60)), txt = 'Casa Oliveira · material para ' + EU.nome + (EU.imobiliaria ? ' · ' + EU.imobiliaria : '');
+        x.font = '300 ' + t + 'px Jost, Helvetica, Arial, sans-serif'; x.textAlign = 'right'; x.textBaseline = 'bottom';
+        var w = x.measureText(txt).width, pad = t * 0.8;
+        x.fillStyle = 'rgba(17,31,14,.45)'; x.fillRect(c.width - w - pad * 2.4, c.height - t - pad * 2.2, w + pad * 2.4, t + pad * 2.2);
+        x.fillStyle = 'rgba(242,240,235,.92)'; x.fillText(txt, c.width - pad * 1.2, c.height - pad * 1.1);
+        c.toBlob(function (b) {
+          if (!b) { falha(); return; }
+          var a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = nomeArq; document.body.appendChild(a); a.click();
+          setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500); ok();
+        }, 'image/jpeg', 0.9);
+      } catch (e) { falha(e); }
+    };
+    img.onerror = falha; img.src = url;
+  });
+}
+function ligarImovelParceiro(id) {
+  var im = Dados.imovel(id); if (!im) return;
+  Dados.registrarAbertura(im.id, null);
+  $$('[data-idioma]').forEach(function (b) { b.addEventListener('click', function () { idiomaFicha = +b.dataset.idioma; render(); }); });
+  $$('[data-foto]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var i = +b.dataset.foto, foto = im._fotos && im._fotos[i];
+      aviso('Preparando a foto...');
+      baixarFotoComMarca(im.fotos[i], im.id + '-' + (i + 1) + '.jpg').then(function () {
+        Dados.registrarAbertura(im.id, foto ? { id: foto.id, nome: 'foto ' + (i + 1) } : { nome: 'foto ' + (i + 1) });
+      }, function () { window.open(im.fotos[i], '_blank'); });
+    });
+  });
+  $$('[data-baixar]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var d = im.docs[+b.dataset.baixar];
+      if (!d || !d.caminho) { aviso('Este documento é só um exemplo.'); Dados.registrarAbertura(im.id, d); return; }
+      var w = window.open('', '_blank');
+      Dados.linkArquivo(d.caminho).then(function (u) { if (u && w) w.location = u; else if (w) w.close(); });
+      Dados.registrarAbertura(im.id, d);
+    });
+  });
+}
+
+/* ---------- convite (sem login) ---------- */
+function telaConvite(id) {
+  $('#app').innerHTML = '<div class="login"><div class="login-caixa entra"><img class="logo" src="assets/logo.png" alt="Casa Oliveira"><p class="suave">Abrindo o convite...</p></div></div>';
+  Dados.conviteInfo(id).then(function (c) {
+    if (!c) {
+      $('#app').innerHTML = '<div class="login"><div class="login-caixa entra"><img class="logo" src="assets/logo.png" alt="Casa Oliveira">' +
+        '<div><h1>Convite indisponível</h1><p class="suave">Este link já foi usado ou passou do prazo. Se você já criou sua senha, é só entrar.</p></div>' +
+        '<a class="btn btn-verde btn-bloco" href="#/" data-ir-parceiro>Entrar no portal</a></div></div>';
+      $('[data-ir-parceiro]').addEventListener('click', function () { modoLogin = 'parceiro'; });
+      return;
+    }
+    $('#app').innerHTML = '<div class="login"><div class="login-caixa entra">' +
+      '<img class="logo" src="assets/logo.png" alt="Casa Oliveira">' +
+      '<div><span class="rotulo">Portal de parceiros</span><h1>Olá, ' + esc(primeiroNome(c.nome)) + '</h1>' +
+        '<p class="suave">A Casa Oliveira liberou para você o material de:</p></div>' +
+      '<div class="tags" style="justify-content:center;margin-bottom:8px">' + (c.imoveis || []).map(function (n) { return '<span class="tag">' + esc(n) + '</span>'; }).join('') + '</div>' +
+      '<form id="f-conv-senha">' +
+        '<label class="campo"><span class="rotulo">E-mail</span><input class="entrada" id="email" type="email" autocomplete="username" value="' + esc(c.email) + '" readonly></label>' +
+        '<label class="campo"><span class="rotulo">Crie uma senha</span><input class="entrada" id="senha" type="password" autocomplete="new-password" minlength="8" placeholder="Pelo menos 8 caracteres"></label>' +
+        '<label class="campo"><span class="rotulo">Repita a senha</span><input class="entrada" id="senha2" type="password" autocomplete="new-password" placeholder="A mesma senha"></label>' +
+        '<button class="btn btn-verde btn-bloco" type="submit" id="b-criar">Criar senha e entrar</button>' +
+      '</form></div></div>';
+    $('#f-conv-senha').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var s1 = $('#senha').value, s2 = $('#senha2').value;
+      if (s1.length < 8) { aviso('A senha precisa ter pelo menos 8 caracteres.'); return; }
+      if (s1 !== s2) { aviso('As duas senhas não são iguais.'); return; }
+      var b = $('#b-criar'); b.disabled = true; b.textContent = 'Criando...';
+      Dados.aceitarConvite(id, c.email, s1).then(function (p) {
+        EU = p; try { localStorage.setItem('co_email_parceiro', c.email); } catch (e2) {}
+        location.hash = '#/hoje'; aviso('Bem-vindo ao portal, ' + primeiroNome(p.nome) + '.');
+      }).catch(function (err) {
+        b.disabled = false; b.textContent = 'Criar senha e entrar';
+        aviso(err && err.message === 'sem-acesso' ? 'O convite não foi aceito. Fale com a Casa Oliveira.' :
+          'Não consegui criar a senha. (' + ((err && (err.detalhe || err.message)) || 'erro desconhecido') + ')');
+      });
+    });
+  });
+}
+
+/* ============================================================
    EM BREVE
    ============================================================ */
 function telaBreve(id) {
@@ -700,14 +1039,25 @@ function telaBreve(id) {
    ============================================================ */
 function render() {
   window.scrollTo(0, 0);
-  if (!EU) { telaEntrar(); return; }
   var partes = (location.hash || '#/hoje').replace(/^#\//, '').split('/');
   var rota = partes[0] || 'hoje', arg = decodeURIComponent(partes[1] || '');
+  if (rota === 'convite' && !EU) { telaConvite(arg); return; }
+  if (!EU) { telaEntrar(); return; }
+  if (rota === 'convite') { location.hash = '#/hoje'; return; }
   var miolo, atual = rota;
+  if (ehParceiro()) {
+    if (rota === 'imovel') miolo = telaImovelParceiro(arg); else { rota = 'hoje'; miolo = telaParceiroInicio(); }
+    $('#app').innerHTML = casca('hoje', miolo);
+    $$('[data-sair]').forEach(function (b) { b.addEventListener('click', sair); });
+    if (rota === 'imovel') ligarImovelParceiro(arg);
+    return;
+  }
   if (rota === 'hoje') miolo = telaHoje();
   else if (rota === 'imoveis') miolo = telaImoveis();
   else if (rota === 'imovel') { miolo = telaImovel(arg); atual = 'imoveis'; }
   else if (rota === 'clientes') miolo = telaClientes();
+  else if (rota === 'parceiros') miolo = telaParceiros();
+  else if (rota === 'parceiro') { miolo = telaParceiro(arg); atual = 'parceiros'; }
   else if (rota === 'cliente') { miolo = telaCliente(arg); atual = 'clientes'; }
   else if (BREVE[rota]) miolo = telaBreve(rota);
   else { miolo = telaHoje(); atual = 'hoje'; }
@@ -741,6 +1091,11 @@ function ligar(rota, arg) {
     });
   }
   if (rota === 'cliente') ligarCliente(arg);
+  $$('[data-convidar]').forEach(function (b) { b.addEventListener('click', janelaConvite); });
+  $$('[data-ver-convite]').forEach(function (b) {
+    b.addEventListener('click', function () { var c = Dados.convites().filter(function (x) { return x.id === b.dataset.verConvite; })[0]; if (c) janelaVerConvite(c); });
+  });
+  if (rota === 'parceiro') ligarParceiro(arg);
   if (rota === 'imoveis') {
     preencherGrade();
     $('#busca').addEventListener('input', function (e) { filtro.busca = e.target.value; preencherGrade(); });

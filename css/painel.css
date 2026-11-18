@@ -365,6 +365,17 @@ select.entrada { appearance: none; background-image: url("data:image/svg+xml,%3C
 .dados-cli > div { word-break: break-word; }
 .dados-cli small { display: block; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--marrom-claro); }
 
+/* ---------- Parceiros ---------- */
+.grade-parc { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+.cartao-parc { display: block; background: var(--branco); border-radius: var(--r-grande); padding: 20px; box-shadow: var(--sombra); text-decoration: none; transition: transform .15s; }
+.cartao-parc:hover { transform: translateY(-2px); }
+.cartao-parc .avatar { width: 44px; height: 44px; flex: none; }
+.cartao-parc .selo { flex: none; }
+.ft-baixar { position: relative; border: 0; cursor: pointer; padding: 0; color: var(--creme); }
+.ft-baixar svg { position: absolute; right: 8px; bottom: 8px; width: 30px; height: 30px; padding: 6px; border-radius: 50%; background: rgba(17,31,14,.55); opacity: .85; transition: opacity .2s; }
+.ft-baixar:hover svg { opacity: 1; }
+.login .tags { margin-top: 0; }
+
 /* ---------- Celular ---------- */
 @media (max-width: 1023px) {
   .lateral { display: none; }
