@@ -36,6 +36,8 @@ var I = {
   link: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>',
   olho: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>',
   baixar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>',
+  filtro: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>',
+  fechar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
   sino: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15Z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg>',
   wa: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2c-1.5 0-3-.4-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.2.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.8 11.9 11.9 0 0 0 4.6 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2l-.5-.2Z"/></svg>',
   folha: '<svg viewBox="0 0 32 32" fill="none"><path d="M6 26C6 14 14 6 27 5c0 13-8 21-21 21Z" fill="#9DB08A"/><path d="M6 26 19 13" stroke="#F2F0EB" stroke-width="1.4" stroke-linecap="round"/></svg>',
@@ -459,18 +461,40 @@ function cartaoCliente(c) {
     (r ? '<div class="lembrete' + (atraso ? ' urgente' : '') + '">' + I.sino + esc(r) + '</div>' : '') +
   '</a>';
 }
+var GRUPOS_TAG = [
+  { nome: 'De onde veio', tags: ['Encontros Motor', 'Club M', 'Instagram', 'Indicação'] },
+  { nome: 'Eventos', teste: function (t) { return /20\d\d/.test(t); } },
+  { nome: 'Relação com a casa', tags: ['Já nos conhece', 'Mapeado', 'Círculo próximo', 'Contato compartilhado'] }
+];
+function gruposDeTags(tags) {
+  var usados = {}, out = [];
+  GRUPOS_TAG.forEach(function (g) {
+    var l = tags.filter(function (t) { return !usados[t] && (g.tags ? g.tags.indexOf(t) >= 0 : g.teste(t)); });
+    l.forEach(function (t) { usados[t] = 1; });
+    if (l.length) out.push({ nome: g.nome, tags: l });
+  });
+  var resto = tags.filter(function (t) { return !usados[t]; });
+  if (resto.length) out.push({ nome: 'Interesse e outras', tags: resto });
+  return out;
+}
+function contaTag(t) { return Dados.clientes().filter(function (c) { return (c.etiquetas || []).indexOf(t) >= 0; }).length; }
 function telaClientes() {
-  var tags = todasEtiquetas();
+  var tags = todasEtiquetas(), f = filtroCli.etiqueta;
   return '<div class="entra">' +
     '<div class="topo"><div><span class="rotulo">Base da Casa Oliveira</span><h1>Clientes e leads</h1></div>' +
       '<div class="topo-acoes"><button class="btn btn-verde" type="button" data-novo-cliente>' + I.mais + 'Novo cliente</button></div></div>' +
     '<div class="filtros"><label class="busca">' + I.lupa + '<input class="entrada" id="busca-cli" placeholder="Buscar por nome, telefone ou etiqueta" value="' + esc(filtroCli.busca) + '"></label>' +
       '<div class="idiomas" id="vista"><button type="button" data-v="quadro" class="' + (filtroCli.vista === 'quadro' ? 'ativo' : '') + '">Quadro</button><button type="button" data-v="lista" class="' + (filtroCli.vista === 'lista' ? 'ativo' : '') + '">Lista</button></div>' +
+      (tags.length ? '<button type="button" class="chip btn-filtro' + (filtroCli.aberto ? ' aberto' : '') + (f ? ' com' : '') + '" id="abre-filtros">' + I.filtro + 'Filtrar' + (f ? '<span class="bolinha">1</span>' : '') + '</button>' : '') +
     '</div>' +
-    (tags.length ? '<div class="filtros linha-tags" style="margin-top:-10px">' + ['Todas'].concat(tags).map(function (t) {
-      var v = t === 'Todas' ? '' : t;
-      return '<button type="button" class="chip' + (filtroCli.etiqueta === v ? ' ativo' : '') + '" data-tag="' + esc(v) + '">' + esc(t) + '</button>';
-    }).join('') + '</div>' : '') +
+    (f && !filtroCli.aberto ? '<div class="filtro-ativo"><span class="suave">Mostrando só</span><button type="button" class="tag tira" data-tag="">' + esc(f) + ' ' + I.fechar + '</button></div>' : '') +
+    (tags.length && filtroCli.aberto ? '<div class="painel-filtros">' +
+      '<div class="pf-topo"><span class="rotulo">Filtrar por etiqueta</span>' + (f ? '<button type="button" class="link-suave" data-tag="">Limpar filtro</button>' : '') + '</div>' +
+      gruposDeTags(tags).map(function (g) {
+        return '<div class="pf-grupo"><small>' + esc(g.nome) + '</small><div class="tags">' + g.tags.map(function (t) {
+          return '<button type="button" class="chip' + (f === t ? ' ativo' : '') + '" data-tag="' + esc(t) + '">' + esc(t) + ' <span class="n">' + contaTag(t) + '</span></button>';
+        }).join('') + '</div></div>';
+      }).join('') + '</div>' : '') +
     '<div id="area-cli"></div></div>';
 }
 function preencherClientes() {
@@ -706,11 +730,13 @@ function ligar(rota, arg) {
         preencherClientes();
       });
     });
+    var af = $('#abre-filtros');
+    if (af) af.addEventListener('click', function () { filtroCli.aberto = !filtroCli.aberto; render(); });
     $$('[data-tag]').forEach(function (b) {
       b.addEventListener('click', function () {
-        filtroCli.etiqueta = b.dataset.tag; filtroCli.limite = 100;
-        $$('[data-tag]').forEach(function (x) { x.classList.toggle('ativo', x === b); });
-        preencherClientes();
+        filtroCli.etiqueta = b.dataset.tag === filtroCli.etiqueta ? '' : b.dataset.tag;
+        filtroCli.limite = 100; filtroCli.aberto = false; render();
+        if (filtroCli.etiqueta) aviso('Mostrando: ' + filtroCli.etiqueta);
       });
     });
   }
