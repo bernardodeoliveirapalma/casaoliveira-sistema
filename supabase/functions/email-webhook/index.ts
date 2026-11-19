@@ -14,10 +14,13 @@ const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SE
 const TOKEN = Deno.env.get('EMAIL_WEBHOOK_TOKEN') || '';
 const ORDEM: Record<string, number> = { fila: 0, enviado: 1, aberto: 2, clicado: 3, falhou: 4 };
 const STATUS: Record<string, string> = {
-  opened: 'aberto', unique_opened: 'aberto', proxy_open: 'aberto', click: 'clicado',
-  hard_bounce: 'falhou', soft_bounce: 'falhou', blocked: 'falhou', invalid_email: 'falhou', error: 'falhou',
+  opened: 'aberto', open: 'aberto', unique_opened: 'aberto', first_opening: 'aberto', proxy_open: 'aberto', loaded_by_proxy: 'aberto',
+  click: 'clicado', clicked: 'clicado',
+  hard_bounce: 'falhou', soft_bounce: 'falhou', blocked: 'falhou', invalid_email: 'falhou', invalid: 'falhou', error: 'falhou',
 };
-const SAIR = new Set(['unsubscribed', 'spam', 'hard_bounce']);
+const SAIR = new Set(['unsubscribed', 'unsubscribe', 'spam', 'complaint', 'hard_bounce']);
+// O Brevo manda os nomes de jeitos diferentes (hard_bounce, hardBounce, "Hard bounce"): deixa tudo igual
+const nomeEvento = (e: unknown) => String(e || '').replace(/([a-z])([A-Z])/g, '$1_$2').replace(/[\s-]+/g, '_').toLowerCase();
 
 function igual(a: string, b: string) {
   if (!a || a.length !== b.length) return false;
@@ -32,8 +35,12 @@ Deno.serve(async (req) => {
   if (!TOKEN || !igual(t, TOKEN)) return new Response('token', { status: 401 });
   try {
     const corpo = await req.json();
-    for (const ev of Array.isArray(corpo) ? corpo : [corpo]) {
-      const msg = String(ev['message-id'] || ev.messageId || '');
+    for (const bruto of Array.isArray(corpo) ? corpo : [corpo]) {
+      const ev = { ...(bruto?.data || {}), ...bruto };
+      ev.event = nomeEvento(ev.event || ev.type || ev.eventType);
+      ev.email = ev.email || ev.recipient || ev.to;
+      console.log('evento', ev.event);
+      const msg = String(ev['message-id'] || ev.messageId || ev.message_id || ev['Message-Id'] || '');
       const novo = STATUS[ev.event];
       if (msg && novo) {
         const { data: e } = await db.from('envios_email').select('id, status, cliente_id').eq('msg_id', msg).maybeSingle();
