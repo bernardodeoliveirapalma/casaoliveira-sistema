@@ -1,0 +1,32 @@
+# Check-up diário do sistema da Casa Oliveira.
+# Todo dia às 9h (Brasília) chama a função "saude" do Supabase.
+# Isso mantém o Supabase acordado e confere e-mail e WhatsApp.
+# Se algo estiver errado, esta verificação fica vermelha e o GitHub avisa por e-mail.
+name: Check-up do sistema
+
+on:
+  schedule:
+    - cron: '0 12 * * *'
+  workflow_dispatch:
+
+jobs:
+  checkup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Conferir o sistema
+        run: |
+          set -e
+          for t in 1 2 3; do
+            if curl -sS -m 60 -o saude.json -w '%{http_code}' https://ejyyarsxwpbwntbqewed.supabase.co/functions/v1/saude > codigo.txt; then
+              [ "$(cat codigo.txt)" = "200" ] && break
+            fi
+            sleep 20
+          done
+          echo "## Check-up da Casa Oliveira" >> "$GITHUB_STEP_SUMMARY"
+          if [ "$(cat codigo.txt 2>/dev/null)" != "200" ]; then
+            echo "O sistema não respondeu (código $(cat codigo.txt 2>/dev/null)). Pode ser o Supabase pausado." | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          jq -r '.itens[] | (if .ok then "✅ " else "❌ " end) + .nome + ": " + .detalhe' saude.json | tee -a "$GITHUB_STEP_SUMMARY"
+          [ "$(jq -r '.ok' saude.json)" = "true" ] || { echo "Algo precisa de atenção." | tee -a "$GITHUB_STEP_SUMMARY"; exit 1; }
