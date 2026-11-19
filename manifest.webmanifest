@@ -1,0 +1,14 @@
+{
+  "name": "Painel · Casa Oliveira",
+  "short_name": "Casa Oliveira",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F2EEE6",
+  "theme_color": "#3E4A36",
+  "lang": "pt-BR",
+  "icons": [
+    { "src": "assets/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
