@@ -1,0 +1,28 @@
+# Assessor do dia da Casa Oliveira.
+# Todo dia às 7h (Brasília) pede para a função "assessor" mandar
+# no WhatsApp de Bernardo as tarefas do dia que estão no ClickUp.
+# O GitHub às vezes atrasa alguns minutos; por isso há uma segunda tentativa às 7h40
+# (a função só manda um resumo por dia). Se falhar, fica vermelho e o GitHub avisa por e-mail.
+name: Assessor do dia
+
+on:
+  schedule:
+    - cron: '0 10 * * *'
+    - cron: '40 10 * * *'
+  workflow_dispatch:
+
+jobs:
+  resumo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Mandar o resumo do dia
+        run: |
+          for t in 1 2 3; do
+            codigo=$(curl -sS -m 90 -o resposta.json -w '%{http_code}' https://ejyyarsxwpbwntbqewed.supabase.co/functions/v1/assessor || echo 000)
+            [ "$codigo" = "200" ] && break
+            sleep 30
+          done
+          echo "## Assessor do dia" >> "$GITHUB_STEP_SUMMARY"
+          jq -r '.detalhe // .' resposta.json 2>/dev/null | tee -a "$GITHUB_STEP_SUMMARY" || true
+          [ "$codigo" = "200" ] || { echo "Não foi possível mandar o resumo (código $codigo)." | tee -a "$GITHUB_STEP_SUMMARY"; exit 1; }
