@@ -79,7 +79,7 @@ var SEMENTE = {
       aceitaWhatsapp: true, aceitaEmail: false, lembrarEm: null, criadoEm: '2026-11-18T12:00:00Z',
       respostas: { 'O que procura': 'Casa de campo', 'Prazo': 'Até 6 meses' }, notas: [] },
     { id: 'c2', nome: 'Paulo (exemplo)', whatsapp: '5548900000002', email: 'paulo@exemplo.com', idioma: 'pt', etapa: 'Em conversa', origem: 'Site', etiquetas: ['Praia', 'Investidor'],
-      aceitaWhatsapp: true, aceitaEmail: true, lembrarEm: '2026-11-18', criadoEm: '2026-11-15T12:00:00Z', respostas: null,
+      aceitaWhatsapp: true, aceitaEmail: true, lembrarEm: '2026-11-18', aniversario: '11-25', criadoEm: '2026-11-15T12:00:00Z', respostas: null,
       notas: [{ texto: 'Gostou do Makai. Quer ver a planta do duplex.', autor: 'Bernardo', criadoEm: '2026-11-16T15:00:00Z' }] },
     { id: 'c3', nome: 'Julia (exemplo)', whatsapp: '5548900000003', email: '', idioma: 'en', etapa: 'Visita', origem: 'Anúncio', etiquetas: ['Praia'],
       aceitaWhatsapp: true, aceitaEmail: false, lembrarEm: null, criadoEm: '2026-11-10T12:00:00Z', respostas: null, notas: [] },
@@ -191,6 +191,11 @@ function DadosDemo() {
       var c = db.clientes.filter(function (x) { return x.id === id; })[0]; if (c) { c.aceitaEmail = false; salvar(); }
       return Promise.resolve(true);
     },
+    salvarAniversario: function (id, dia, mes) {
+      var c = db.clientes.filter(function (x) { return x.id === id; })[0];
+      if (c && !c.aniversario) { c.aniversario = ('0' + mes).slice(-2) + '-' + ('0' + dia).slice(-2); salvar(); }
+      return Promise.resolve(true);
+    },
     convites: function () { return db.convites.filter(function (c) { return !c.usadoEm; }); },
     convidar: function (c) {
       c.id = 'cv' + Date.now(); c.criadoEm = new Date().toISOString(); db.convites.unshift(c); salvar(); return Promise.resolve(c);
@@ -287,13 +292,13 @@ function DadosSupabase() {
   function falhou(r) { if (r.error) throw r.error; return r.data; }
   function clienteDeLinha(c) {
     return { id: c.id, nome: c.nome, whatsapp: c.whatsapp || '', email: c.email || '', idioma: c.idioma, etapa: c.etapa, origem: c.origem || '',
-      etiquetas: c.etiquetas || [], aceitaWhatsapp: c.aceita_whatsapp, aceitaEmail: c.aceita_email, lembrarEm: c.lembrar_em,
+      etiquetas: c.etiquetas || [], aceitaWhatsapp: c.aceita_whatsapp, aceitaEmail: c.aceita_email, lembrarEm: c.lembrar_em, aniversario: c.aniversario || '',
       respostas: c.respostas_quiz, utm: c.utm, criadoEm: c.criado_em };
   }
   function clienteParaLinha(c) {
     return { nome: c.nome, whatsapp: c.whatsapp || null, email: c.email || null, idioma: c.idioma || 'pt', etapa: c.etapa || 'Novo',
       origem: c.origem || null, etiquetas: c.etiquetas || [], aceita_whatsapp: !!c.aceitaWhatsapp, aceita_email: !!c.aceitaEmail,
-      lembrar_em: c.lembrarEm || null };
+      lembrar_em: c.lembrarEm || null, aniversario: c.aniversario || null };
   }
 
   function carregarTudo() {
@@ -438,6 +443,7 @@ function DadosSupabase() {
     testeEmail: function (m) { return funcaoEmail({ acao: 'teste', assunto: m.assunto, corpo: m.corpo, botaoTexto: m.botaoTexto, botaoUrl: m.botaoUrl }); },
     conviteEmail: function (id) { return funcaoEmail({ acao: 'convite', id: id }); },
     sairEmail: function (id) { return sb.rpc('sair_email', { p_id: id }).then(falhou); },
+    salvarAniversario: function (id, dia, mes) { return sb.rpc('salvar_aniversario', { p_id: id, p_dia: dia, p_mes: mes }).then(falhou); },
     parceiros: function () { return parceiros.slice(); },
     parceiro: function (id) { return parceiros.filter(function (x) { return x.id === id; })[0] || null; },
     convites: function () { return convites.slice(); },

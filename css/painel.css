@@ -63,6 +63,10 @@ img { display: block; max-width: 100%; }
 .btn-medio { border-radius: var(--r-medio); }
 .btn-pequeno { height: 40px; padding: 0 16px; font-size: 14px; border-radius: 20px; }
 .btn-bloco { width: 100%; }
+.btn-mini { height: 40px; padding: 0 16px; font-size: 14px; border-radius: 20px; flex: none; }
+.btn-mini svg { width: 16px; height: 16px; }
+.btn-texto { background: none; border: 0; padding: 8px; margin-top: 18px; font: inherit; font-size: 14px; color: var(--marrom-claro); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.btn-texto:hover { color: var(--verde-escuro); }
 
 /* ---------- Login ---------- */
 .login {
@@ -468,3 +472,15 @@ select.entrada { appearance: none; background-image: url("data:image/svg+xml,%3C
   .linha-cli { padding: 12px 14px; }
 }
 @media (min-width: 1024px) { .topo-celular { display: none; } }
+
+/* ---------- Aniversários ---------- */
+.linha-aniv { justify-content: space-between; }
+.linha-aniv:hover { background: transparent; }
+.aniv-quem { display: flex; align-items: center; gap: 14px; text-decoration: none; color: inherit; min-width: 0; flex: 1; }
+.aniv-sel { margin-top: 4px; }
+.aniv-form { display: grid; gap: 14px; text-align: left; }
+.aniv-ass { margin: 24px 0 0 !important; font-family: var(--serif); font-size: 18px; color: var(--verde); }
+@media (max-width: 560px) {
+  .aniv-sel, .aniv-form .grade-2 { grid-template-columns: 1fr 1fr; }
+  .linha-aniv .btn-mini { padding: 0 12px; }
+}

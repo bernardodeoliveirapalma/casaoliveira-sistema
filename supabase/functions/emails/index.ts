@@ -41,6 +41,12 @@ function assuntoCom(assunto: string, nome: string | null) {
   return pn ? assunto.replace(/\{nome\}/g, pn) : assunto.replace(/,?\s*\{nome\}/g, '').trim();
 }
 
+// {aniversario} no link do botão vira o link pessoal da página do aniversário
+function linkBotao(url: string | null | undefined, clienteId?: string | null) {
+  return String(url || '').replace(/^https?:\/\/\{aniversario\}/i, '{aniversario}')
+    .replace(/\{aniversario\}/g, PAINEL + '/#/aniversario/' + (clienteId || 'teste'));
+}
+
 // Monta o e-mail com a cara da Casa Oliveira
 function montar(corpo: string, nome: string, botao?: { texto?: string | null; url?: string | null }, sair?: string) {
   const pn = primeiroNome(nome);
@@ -97,7 +103,7 @@ async function enviarEmail(db: ReturnType<typeof createClient>, id: string) {
     await Promise.all(lote.map(async (e: any) => {
       try {
         const sair = e.cliente_id ? PAINEL + '/#/sair/' + e.cliente_id : undefined;
-        const msgId = await brevo({ email: e.email, nome: e.nome }, assuntoCom(m.assunto, e.nome), montar(m.corpo, e.nome, { texto: m.botao_texto, url: m.botao_url }, sair), sair);
+        const msgId = await brevo({ email: e.email, nome: e.nome }, assuntoCom(m.assunto, e.nome), montar(m.corpo, e.nome, { texto: m.botao_texto, url: linkBotao(m.botao_url, e.cliente_id) }, sair), sair);
         await db.from('envios_email').update({ status: 'enviado', msg_id: msgId, atualizado_em: new Date().toISOString() }).eq('id', e.id);
       } catch (err) {
         falhas++;
@@ -138,7 +144,7 @@ Deno.serve(async (req) => {
       const para = u?.user?.email;
       if (!para) return json({ erro: 'Não achei seu e-mail' }, 400);
       const { data: p } = await db.from('perfis').select('nome').eq('id', u!.user!.id).maybeSingle();
-      await brevo({ email: para, nome: p?.nome }, '[Teste] ' + assuntoCom(String(b.assunto || ''), p?.nome || ''), montar(String(b.corpo || ''), p?.nome || '', { texto: b.botaoTexto, url: b.botaoUrl }, PAINEL + '/#/sair/teste'));
+      await brevo({ email: para, nome: p?.nome }, '[Teste] ' + assuntoCom(String(b.assunto || ''), p?.nome || ''), montar(String(b.corpo || ''), p?.nome || '', { texto: b.botaoTexto, url: linkBotao(b.botaoUrl) }, PAINEL + '/#/sair/teste'));
       return json({ ok: true, para });
     }
 

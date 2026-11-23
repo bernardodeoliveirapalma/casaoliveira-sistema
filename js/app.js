@@ -209,6 +209,9 @@ function telaHoje() {
   var cls = Dados.clientes(), h = hojeISO(), semana = maisDias(-7);
   var retornos = cls.filter(function (c) { return c.lembrarEm && c.lembrarEm <= h; }).sort(function (a, b) { return a.lembrarEm < b.lembrarEm ? -1 : 1; });
   var novos = cls.filter(function (c) { return c.etapa === 'Novo' && c.criadoEm && c.criadoEm.slice(0, 10) >= semana && !(c.respostas && c.respostas['Importado de']); });
+  var anivs = cls.filter(function (c) { var n = anivEmDias(c.aniversario); return n !== null && n <= 7; })
+    .sort(function (a, b) { return anivEmDias(a.aniversario) - anivEmDias(b.aniversario); });
+  var anivHoje = anivs.filter(function (c) { return anivEmDias(c.aniversario) === 0; });
   function linhaHoje(c, extra) {
     return '<a class="linha-cli" href="#/cliente/' + encodeURIComponent(c.id) + '"><span class="avatar' + (c.idioma === 'en' ? ' ane' : '') + '">' + esc((primeiroNome(c.nome) || '?')[0]) + '</span>' +
       '<div class="cli-nome"><div>' + esc(c.nome) + '</div><small>' + esc(extra) + '</small></div><span class="selo" style="background:' + (COR_ETAPA[c.etapa] || 'var(--creme)') + '">' + esc(c.etapa) + '</span></a>';
@@ -216,6 +219,7 @@ function telaHoje() {
   var resumo = retornos.length || novos.length ?
     'Hoje tem ' + [retornos.length ? retornos.length + (retornos.length > 1 ? ' retornos combinados' : ' retorno combinado') : '', novos.length ? novos.length + (novos.length > 1 ? ' leads novos na semana' : ' lead novo na semana') : ''].filter(Boolean).join(' e ') + '.' :
     'Nenhum retorno para hoje. Bom dia para cadastrar imóveis ou chamar alguém da base.';
+  if (anivHoje.length) resumo += ' ' + (anivHoje.length > 1 ? anivHoje.length + ' pessoas fazem aniversário hoje.' : primeiroNome(anivHoje[0].nome) + ' faz aniversário hoje.');
   return '<div class="entra">' +
     '<section class="ola"><span class="rotulo">' + esc(data) + '</span><h1>' + saudacao() + ', ' + esc(EU.nome) + '</h1>' +
       '<p>' + esc(resumo) + '</p>' + I.ramo + '</section>' +
@@ -226,6 +230,13 @@ function telaHoje() {
     '</div>' +
     (retornos.length ? '<span class="rotulo" style="display:block;margin-bottom:12px">Para retornar</span><div class="lista-cli" style="margin-bottom:28px">' +
       retornos.slice(0, 8).map(function (c) { return linhaHoje(c, retornoTexto(c)); }).join('') + '</div>' : '') +
+    (anivs.length ? '<span class="rotulo" style="display:block;margin-bottom:12px">Aniversários desta semana</span><div class="lista-cli" style="margin-bottom:28px">' +
+      anivs.slice(0, 10).map(function (c) {
+        var n = anivEmDias(c.aniversario);
+        return '<div class="linha-cli linha-aniv"><a class="aniv-quem" href="#/cliente/' + encodeURIComponent(c.id) + '"><span class="avatar' + (c.idioma === 'en' ? ' ane' : '') + '">' + esc((primeiroNome(c.nome) || '?')[0]) + '</span>' +
+          '<div class="cli-nome"><div>' + esc(c.nome) + '</div><small>' + esc(anivTexto(c.aniversario)) + ' · ' + (n === 0 ? 'hoje' : n === 1 ? 'amanhã' : 'em ' + n + ' dias') + '</small></div></a>' +
+          (n === 0 && c.whatsapp ? '<a class="btn btn-wa btn-mini" target="_blank" rel="noopener" href="' + esc(linkWa(c, msgParabens(c))) + '">' + I.wa + 'Dar parabéns</a>' : '') + '</div>';
+      }).join('') + '</div>' : '') +
     (novos.length ? '<span class="rotulo" style="display:block;margin-bottom:12px">Chegaram esta semana</span><div class="lista-cli" style="margin-bottom:28px">' +
       novos.slice(0, 6).map(function (c) { return linhaHoje(c, (c.origem || 'Sem origem') + ' · ' + quando(c.criadoEm)); }).join('') + '</div>' : '') +
     '<span class="rotulo" style="display:block;margin-bottom:12px">O que vamos fazer agora</span>' +
@@ -476,6 +487,37 @@ function linkWa(c, texto) {
   var num = soNumeros(c.whatsapp); if (num && num.length <= 11) num = '55' + num;
   return 'https://wa.me/' + num + '?text=' + encodeURIComponent(texto || msgOla(c));
 }
+/* ---------- aniversários (guardados como MM-DD, sem o ano) ---------- */
+var MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+function anivTexto(a) { if (!a) return ''; var p = a.split('-'); return (+p[1]) + ' de ' + MESES[+p[0] - 1]; }
+function anivEmDias(a) {
+  // quantos dias faltam (0 = hoje)
+  if (!a) return null;
+  var p = a.split('-'), h = new Date(); h.setHours(0, 0, 0, 0);
+  var d = new Date(h.getFullYear(), +p[0] - 1, +p[1]);
+  if (+p[0] === 2 && +p[1] === 29 && d.getMonth() !== 1) d = new Date(h.getFullYear(), 1, 28);
+  if (d < h) d.setFullYear(h.getFullYear() + 1);
+  return Math.round((d - h) / 86400000);
+}
+function msgParabens(c) {
+  var n = primeiroNome(c.nome);
+  return c.idioma === 'en'
+    ? 'Hello' + (n ? ', ' + n : '') + '. Today is your birthday and we could not let it pass. We wish you a beautiful new year of life. Ane & Bernardo, Casa Oliveira.'
+    : 'Olá' + (n ? ', ' + n : '') + '. Hoje é o seu aniversário e não podíamos deixar passar. Desejamos um novo ano muito bonito para você. Ane & Bernardo, Casa Oliveira.';
+}
+function seletorAniv(a) {
+  var p = a ? a.split('-') : ['', ''], dias = '<option value="">Dia</option>', meses = '<option value="">Mês</option>';
+  for (var i = 1; i <= 31; i++) dias += '<option value="' + i + '"' + (+p[1] === i ? ' selected' : '') + '>' + i + '</option>';
+  MESES.forEach(function (m, i) { meses += '<option value="' + (i + 1) + '"' + (+p[0] === i + 1 ? ' selected' : '') + '>' + m + '</option>'; });
+  return '<div class="grade-2 aniv-sel"><select class="entrada" name="anivDia" aria-label="Dia">' + dias + '</select><select class="entrada" name="anivMes" aria-label="Mês">' + meses + '</select></div>';
+}
+function lerAniv(dia, mes) {
+  dia = +dia; mes = +mes; if (!dia || !mes) return '';
+  var max = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][mes - 1];
+  if (dia > max) return null;
+  return ('0' + mes).slice(-2) + '-' + ('0' + dia).slice(-2);
+}
 function clientesFiltrados() {
   var b = filtroCli.busca.toLowerCase(), nb = soNumeros(b);
   return Dados.clientes().filter(function (c) {
@@ -612,6 +654,7 @@ function telaCliente(id) {
         '<div><small>WhatsApp</small>' + esc(telBonito(c.whatsapp) || 'Sem número') + '</div>' +
         '<div><small>E-mail</small>' + esc(c.email || 'Sem e-mail') + '</div>' +
         '<div><small>Idioma</small>' + (c.idioma === 'en' ? 'Inglês' : 'Português') + '</div>' +
+        '<div><small>Aniversário</small>' + (c.aniversario ? esc(anivTexto(c.aniversario)) + (anivEmDias(c.aniversario) === 0 ? ' · é hoje' : '') : 'Não sabemos ainda') + '</div>' +
         '<div><small>Aceita receber</small>' + ([c.aceitaWhatsapp ? 'WhatsApp' : '', c.aceitaEmail ? 'E-mail' : ''].filter(Boolean).join(' e ') || 'Ainda não') + '</div>' +
       '</div></section>' +
       '<section class="painel"><span class="rotulo">Etiquetas</span><div class="tags" id="tags">' +
@@ -637,6 +680,7 @@ function janelaCliente(c) {
       '<label class="campo"><span class="rotulo">Etapa</span><select class="entrada" name="etapa">' + op(ETAPAS, c.etapa) + '</select></label>' +
       '<label class="campo"><span class="rotulo">Idioma</span><select class="entrada" name="idioma"><option value="pt"' + (c.idioma !== 'en' ? ' selected' : '') + '>Português</option><option value="en"' + (c.idioma === 'en' ? ' selected' : '') + '>Inglês</option></select></label>' +
       '<label class="campo"><span class="rotulo">Etiquetas</span><input class="entrada" name="etiquetas" value="' + esc((c.etiquetas || []).join(', ')) + '" placeholder="Serra, Investidor"></label>' +
+      '<div class="campo"><span class="rotulo">Aniversário (dia e mês)</span>' + seletorAniv(c.aniversario) + '</div>' +
       '<div class="campo inteiro privacidade">' +
         '<label class="alavanca"><input type="checkbox" name="aceitaWhatsapp"' + (c.aceitaWhatsapp ? ' checked' : '') + '><span class="trilho"></span>Aceita receber comunicados por WhatsApp</label>' +
         '<label class="alavanca"><input type="checkbox" name="aceitaEmail"' + (c.aceitaEmail ? ' checked' : '') + '><span class="trilho"></span>Aceita receber e-mails</label>' +
@@ -653,6 +697,10 @@ function janelaCliente(c) {
         c.origem = d.get('origem'); c.etapa = d.get('etapa'); c.idioma = d.get('idioma');
         c.etiquetas = d.get('etiquetas').split(',').map(function (t) { return t.trim(); }).filter(Boolean);
         c.aceitaWhatsapp = !!d.get('aceitaWhatsapp'); c.aceitaEmail = !!d.get('aceitaEmail');
+        var an = lerAniv(d.get('anivDia'), d.get('anivMes'));
+        if (an === null) { aviso('Esse dia não existe nesse mês.'); return; }
+        if (!an && (d.get('anivDia') || d.get('anivMes'))) { aviso('Escolha o dia e o mês do aniversário, ou deixe os dois em branco.'); return; }
+        c.aniversario = an;
         var btn = $('button[type=submit]', f); btn.disabled = true; btn.textContent = 'Salvando...';
         Dados.salvarCliente(c).then(function (s) {
           fecharJanela(); aviso(novo ? primeiroNome(s.nome) + ' entrou na base.' : 'Alterações salvas.');
@@ -1046,6 +1094,9 @@ function publico(f) {
   return Dados.clientes().filter(function (c) {
     if (et.length && !(c.etiquetas || []).some(function (t) { return et.indexOf(t) >= 0; })) return false;
     if (ep.length && ep.indexOf(c.etapa) < 0) return false;
+    if (f.idioma && (c.idioma === 'en' ? 'en' : 'pt') !== f.idioma) return false;
+    if (f.semAniversario && c.aniversario) return false;
+    if (f.anivHoje && anivEmDias(c.aniversario) !== 0) return false;
     return true;
   });
 }
@@ -1228,6 +1279,8 @@ function previaEmail(m, nome) {
 var MODELOS_EMAIL = [
   { nome: 'Material do evento', assunto: 'O material que prometemos, {nome}', corpo: 'Olá, {nome}.\n\nFoi muito bom ter você com a gente. Como combinado, separamos o material para você ver com calma.\n\nQualquer dúvida, é só responder este e-mail.', botaoTexto: 'Ver o material', botaoUrl: 'https://casaoliveira.site' },
   { nome: 'Novidade da curadoria', assunto: 'Uma novidade da nossa curadoria', corpo: 'Olá, {nome}.\n\nSeparamos uma novidade que tem a ver com o que você procura. Escolhemos com o mesmo cuidado de sempre: lugar, construtora e potencial.\n\nSe quiser os detalhes, é só responder este e-mail.', botaoTexto: 'Conhecer', botaoUrl: 'https://casaoliveira.site' },
+  { nome: 'Pedir aniversário', assunto: '{nome}, queremos lembrar do seu dia', corpo: 'Olá, {nome}.\n\nNa Casa Oliveira nós cuidamos das pessoas, não só dos imóveis. Por isso gostaríamos de saber quando é o seu aniversário, para lembrar do seu dia.\n\nÉ só tocar no botão abaixo e escolher o dia e o mês. Leva poucos segundos e não pedimos o ano.', botaoTexto: 'Contar meu aniversário', botaoUrl: '{aniversario}', semAniversario: true, idioma: 'pt' },
+  { nome: 'Birthday (English)', assunto: '{nome}, we would love to remember your day', corpo: 'Hello, {nome}.\n\nAt Casa Oliveira we care for people, not only for homes. That is why we would love to know when your birthday is, so we can remember your day.\n\nJust tap the button below and choose the day and month. It takes a few seconds and we do not ask for the year.', botaoTexto: 'Share my birthday', botaoUrl: '{aniversario}', semAniversario: true, idioma: 'en' },
   { nome: 'Em branco', assunto: '', corpo: 'Olá, {nome}.\n\n', botaoTexto: '', botaoUrl: '' }
 ];
 
@@ -1265,20 +1318,22 @@ function preencherEmail() {
   }, function () { var box = $('#lista-em'); if (box) box.innerHTML = '<p class="suave" style="padding:18px">Rode o passo 10 no Supabase para ver os e-mails.</p>'; });
 }
 function janelaEmail() {
-  var est = { etiquetas: [], etapas: [], m: JSON.parse(JSON.stringify(MODELOS_EMAIL[0])) };
+  var est = { etiquetas: [], etapas: [], idioma: '', semAniversario: false, m: JSON.parse(JSON.stringify(MODELOS_EMAIL[0])) };
   var tags = todasEtiquetas();
   abrirJanela(
     '<span class="rotulo">Novo e-mail</span><h2>Para quem e o quê?</h2>' +
     '<div class="passo"><span class="rotulo">1. Quem recebe</span>' +
       '<small class="suave" style="display:block;margin-bottom:8px">Sem escolher nada, vai para todos que autorizaram. Escolhendo, vai para quem tem qualquer uma das etiquetas.</small>' +
       '<div class="tags">' + tags.map(function (t) { return '<button type="button" class="chip" data-et="' + esc(t) + '">' + esc(t) + '</button>'; }).join('') + '</div>' +
-      '<div class="tags" style="margin-top:12px">' + ETAPAS.map(function (e) { return '<button type="button" class="chip" data-ee="' + esc(e) + '">' + esc(e) + '</button>'; }).join('') + '</div></div>' +
+      '<div class="tags" style="margin-top:12px">' + ETAPAS.map(function (e) { return '<button type="button" class="chip" data-ee="' + esc(e) + '">' + esc(e) + '</button>'; }).join('') + '</div>' +
+      '<div class="tags" style="margin-top:12px"><button type="button" class="chip" data-ei="pt">Só português</button><button type="button" class="chip" data-ei="en">Só inglês</button>' +
+        '<button type="button" class="chip" data-sem-aniv>Só quem não contou o aniversário</button></div></div>' +
     '<div class="passo"><span class="rotulo">2. Começar de</span><div class="tags">' + MODELOS_EMAIL.map(function (m, i) {
       return '<button type="button" class="chip' + (i === 0 ? ' ativo' : '') + '" data-mod="' + i + '">' + esc(m.nome) + '</button>'; }).join('') + '</div></div>' +
     '<div class="passo"><span class="rotulo">3. O e-mail</span>' +
       '<label class="campo"><span class="rotulo">Assunto</span><input class="entrada" id="e-assunto"></label>' +
       '<label class="campo"><span class="rotulo">Texto</span><textarea class="entrada" id="e-corpo" rows="7"></textarea></label>' +
-      '<small class="suave" style="display:block;margin:-4px 0 10px">{nome} vira o primeiro nome da pessoa. Deixe uma linha em branco entre os parágrafos.</small>' +
+      '<small class="suave" style="display:block;margin:-4px 0 10px">{nome} vira o primeiro nome da pessoa. Deixe uma linha em branco entre os parágrafos. No link do botão, {aniversario} vira o link pessoal para a pessoa contar o aniversário.</small>' +
       '<div class="grade-2"><label class="campo"><span class="rotulo">Texto do botão (opcional)</span><input class="entrada" id="e-btxt"></label>' +
       '<label class="campo"><span class="rotulo">Link do botão</span><input class="entrada" id="e-burl" placeholder="https://"></label></div></div>' +
     '<div class="passo"><span class="rotulo" id="e-como">Como fica</span><div id="e-previa"></div></div>' +
@@ -1291,7 +1346,11 @@ function janelaEmail() {
       function lerCampos() {
         est.m.assunto = $('#e-assunto', j).value; est.m.corpo = $('#e-corpo', j).value;
         est.m.botaoTexto = $('#e-btxt', j).value.trim(); est.m.botaoUrl = $('#e-burl', j).value.trim();
-        if (est.m.botaoUrl && !/^https?:\/\//i.test(est.m.botaoUrl)) est.m.botaoUrl = 'https://' + est.m.botaoUrl;
+        if (est.m.botaoUrl && !/^https?:\/\//i.test(est.m.botaoUrl) && est.m.botaoUrl.indexOf('{aniversario}') < 0) est.m.botaoUrl = 'https://' + est.m.botaoUrl;
+      }
+      function pintarFiltros() {
+        $$('[data-ei]', j).forEach(function (x) { x.classList.toggle('ativo', x.dataset.ei === est.idioma); });
+        var sa = $('[data-sem-aniv]', j); if (sa) sa.classList.toggle('ativo', !!est.semAniversario);
       }
       function escrever() {
         $('#e-assunto', j).value = est.m.assunto; $('#e-corpo', j).value = est.m.corpo;
@@ -1313,9 +1372,14 @@ function janelaEmail() {
       function alternar(lista, v) { var i = lista.indexOf(v); if (i >= 0) lista.splice(i, 1); else lista.push(v); }
       $$('[data-et]', j).forEach(function (b) { b.addEventListener('click', function () { alternar(est.etiquetas, b.dataset.et); b.classList.toggle('ativo'); atualizar(); }); });
       $$('[data-ee]', j).forEach(function (b) { b.addEventListener('click', function () { alternar(est.etapas, b.dataset.ee); b.classList.toggle('ativo'); atualizar(); }); });
+      $$('[data-ei]', j).forEach(function (b) { b.addEventListener('click', function () { est.idioma = est.idioma === b.dataset.ei ? '' : b.dataset.ei; pintarFiltros(); atualizar(); }); });
+      $('[data-sem-aniv]', j).addEventListener('click', function () { est.semAniversario = !est.semAniversario; pintarFiltros(); atualizar(); });
       $$('[data-mod]', j).forEach(function (b) {
         b.addEventListener('click', function () {
           est.m = JSON.parse(JSON.stringify(MODELOS_EMAIL[+b.dataset.mod])); escrever();
+          if (est.m.semAniversario) est.semAniversario = true;
+          if (est.m.idioma) est.idioma = est.m.idioma;
+          pintarFiltros();
           $$('[data-mod]', j).forEach(function (x) { x.classList.toggle('ativo', x === b); }); atualizar();
         });
       });
@@ -1334,7 +1398,7 @@ function janelaEmail() {
         if (!b.dataset.ok) { b.dataset.ok = 1; b.innerHTML = I.carta + 'Toque de novo para enviar para ' + ps.length + (ps.length === 1 ? ' pessoa' : ' pessoas'); return; }
         b.disabled = true; b.textContent = 'Enviando...';
         Dados.criarEmail({ assunto: est.m.assunto.trim(), corpo: est.m.corpo.trim(), botaoTexto: est.m.botaoTexto, botaoUrl: est.m.botaoUrl,
-          filtro: { etiquetas: est.etiquetas, etapas: est.etapas } }, ps).then(function () {
+          filtro: { etiquetas: est.etiquetas, etapas: est.etapas, idioma: est.idioma || null, semAniversario: !!est.semAniversario } }, ps).then(function () {
           fecharJanela(); aviso('E-mail saindo para ' + ps.length + (ps.length === 1 ? ' pessoa.' : ' pessoas.')); render();
         }, function (e) { b.disabled = false; aviso('Não deu: ' + ((e && e.detalhe) || 'tente de novo') + '.'); atualizar(); });
       });
@@ -1349,6 +1413,56 @@ function telaSairEmail(id) {
   };
   if (id === 'teste') { feito(); return; }
   Dados.sairEmail(id).then(feito, feito);
+}
+
+/* ---------- página pública: a pessoa conta o aniversário ---------- */
+function telaAniversario(id) {
+  var en = false;
+  try { en = String(navigator.language || '').slice(0, 2).toLowerCase() === 'en'; } catch (e) {}
+  var T = {
+    titulo: ['Quando é o seu aniversário?', 'When is your birthday?'],
+    texto: ['Queremos lembrar do seu dia. Escolha o dia e o mês. Não pedimos o ano.', 'We would love to remember your day. Choose the day and month. We do not ask for the year.'],
+    dia: ['Dia', 'Day'], mes: ['Mês', 'Month'], salvar: ['Guardar a data', 'Save the date'],
+    falta: ['Escolha o dia e o mês.', 'Choose the day and the month.'], invalido: ['Esse dia não existe nesse mês.', 'That day does not exist in that month.'],
+    pronto: ['Obrigado', 'Thank you'], prontoTxt: ['Guardamos a sua data com carinho. Até lá.', 'We saved your date with care. See you then.'],
+    erro: ['Não conseguimos guardar agora. Tente de novo em instantes.', 'We could not save it right now. Please try again in a moment.'],
+    site: ['Ir para o site da Casa Oliveira', 'Visit the Casa Oliveira website'], troca: ['English', 'Português'],
+    ass: ['Ane & Bernardo, Casa Oliveira', 'Ane & Bernardo, Casa Oliveira']
+  };
+  function t(k) { return T[k][en ? 1 : 0]; }
+  function desenhar() {
+    var dias = '<option value="">' + t('dia') + '</option>', meses = '<option value="">' + t('mes') + '</option>';
+    for (var i = 1; i <= 31; i++) dias += '<option value="' + i + '">' + i + '</option>';
+    (en ? MONTHS : MESES).forEach(function (m, i) { meses += '<option value="' + (i + 1) + '">' + m + '</option>'; });
+    $('#app').innerHTML = '<div class="login"><div class="login-caixa entra aniv-caixa"><img class="logo" src="assets/logo.png" alt="Casa Oliveira">' +
+      '<div><h1>' + esc(t('titulo')) + '</h1><p class="suave">' + esc(t('texto')) + '</p></div>' +
+      '<form id="f-aniv" class="aniv-form"><div class="grade-2"><select class="entrada" name="dia" aria-label="' + esc(t('dia')) + '">' + dias + '</select>' +
+        '<select class="entrada" name="mes" aria-label="' + esc(t('mes')) + '">' + meses + '</select></div>' +
+        '<button class="btn btn-verde btn-bloco" type="submit">' + esc(t('salvar')) + '</button></form>' +
+      '<p class="suave aniv-ass">' + esc(t('ass')) + '</p>' +
+      '<button type="button" class="btn-texto" id="aniv-lingua">' + esc(t('troca')) + '</button></div></div>';
+    $('#aniv-lingua').addEventListener('click', function () { en = !en; desenhar(); });
+    var f = $('#f-aniv');
+    f.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var d = new FormData(f), an = lerAniv(d.get('dia'), d.get('mes'));
+      if (an === '') { aviso(t('falta')); return; }
+      if (an === null) { aviso(t('invalido')); return; }
+      var b = $('button[type=submit]', f); b.disabled = true;
+      var feito = function () {
+        $('#app').innerHTML = '<div class="login"><div class="login-caixa entra"><img class="logo" src="assets/logo.png" alt="Casa Oliveira">' +
+          '<div><h1>' + esc(t('pronto')) + '</h1><p class="suave">' + esc(t('prontoTxt')) + '</p></div>' +
+          '<p class="suave aniv-ass">' + esc(t('ass')) + '</p>' +
+          '<a class="btn btn-linha btn-bloco" href="https://casaoliveira.site">' + esc(t('site')) + '</a></div></div>';
+      };
+      if (id === 'teste') { feito(); return; }
+      Dados.salvarAniversario(id, +d.get('dia'), +d.get('mes')).then(function (ok) {
+        if (ok === false) { b.disabled = false; aviso(t('invalido')); return; }
+        feito();
+      }, function () { b.disabled = false; aviso(t('erro')); });
+    });
+  }
+  desenhar();
 }
 
 /* ---------- envio em sequência (pelo WhatsApp de sempre, sem custo) ---------- */
@@ -1450,6 +1564,7 @@ function render() {
   var partes = (location.hash || '#/hoje').replace(/^#\//, '').split('/');
   var rota = partes[0] || 'hoje', arg = decodeURIComponent(partes[1] || '');
   if (rota === 'sair') { telaSairEmail(arg); return; }
+  if (rota === 'aniversario') { telaAniversario(arg); return; }
   if (rota === 'convite' && !EU) { telaConvite(arg); return; }
   if (!EU) { telaEntrar(); return; }
   if (rota === 'convite') { location.hash = '#/hoje'; return; }
