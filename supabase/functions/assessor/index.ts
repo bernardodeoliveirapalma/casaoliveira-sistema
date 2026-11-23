@@ -17,6 +17,7 @@
 //   CLICKUP_TOKEN   chave pessoal do ClickUp (começa com pk_)
 //   ASSESSOR_PARA   WhatsApp que recebe os avisos, ex.: +5548999999999
 //   ASSESSOR_NOME   (opcional) nome no "Bom dia", padrão Bernardo
+//   ASSESSOR_DESDE  (opcional) ignora tarefas que venceram antes deste dia, padrão 2026-11-23
 // Usa também os que já existem: YCLOUD_API_KEY, WA_FROM, WA_WABA_ID.
 // ============================================================
 import { createClient } from 'npm:@supabase/supabase-js@2.45.4';
@@ -30,6 +31,10 @@ const FROM = Deno.env.get('WA_FROM') || '';
 const WABA = Deno.env.get('WA_WABA_ID') || '';
 const MODELO = 'resumo_do_dia';
 const FUSO = -3; // Brasília, sem horário de verão
+// Tarefas com vencimento antes deste dia são ignoradas (pedido de Bernardo em 23/11/2026:
+// o que ficou para trás no ClickUp não entra no resumo).
+const DESDE = Deno.env.get('ASSESSOR_DESDE') || '2026-11-23';
+const DESDE_MS = Date.parse(DESDE + 'T00:00:00.000Z') - FUSO * 3600_000;
 
 const json = (b: unknown, status = 200) =>
   new Response(JSON.stringify(b, null, 2), { status, headers: { 'Content-Type': 'application/json; charset=utf-8' } });
@@ -76,7 +81,7 @@ async function tarefasDoDia() {
   const vistas = new Set<string>();
   for (const t of times) {
     for (let page = 0; page < 10; page++) {
-      const r = await clickup(`/team/${t.id}/task?page=${page}&subtasks=true&include_closed=false&due_date_lt=${fim}&order_by=due_date`);
+      const r = await clickup(`/team/${t.id}/task?page=${page}&subtasks=true&include_closed=false&due_date_lt=${fim}&due_date_gt=${DESDE_MS - 1}&order_by=due_date`);
       for (const k of r.tasks || []) {
         if (vistas.has(k.id)) continue;
         vistas.add(k.id);
@@ -84,7 +89,7 @@ async function tarefasDoDia() {
         // minhas: atribuídas a mim, ou sem ninguém atribuído
         if (resp.length && !resp.includes(eu.id)) continue;
         if (k.status?.type === 'closed' || k.status?.type === 'done') continue;
-        if (!k.due_date) continue;
+        if (!k.due_date || Number(k.due_date) < DESDE_MS) continue;
         lista.push({
           nome: String(k.name || '').replace(/\s+/g, ' ').trim(),
           vence: Number(k.due_date),
