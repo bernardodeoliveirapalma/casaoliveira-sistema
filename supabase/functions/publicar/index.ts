@@ -64,7 +64,7 @@ async function criar(uid: string, token: string, params: Record<string, string>)
     try {
       return (await ig(`/${uid}/media`, token, params)).id as string;
     } catch (e) {
-      if (t >= 4) throw e;
+      if (t >= 4) throw new Error(`${(e as Error).message} [${params.is_carousel_item ? 'lâmina ' + params.image_url.split('/').pop() : params.media_type || 'post'}]`);
       await new Promise((r) => setTimeout(r, 6000 * t));
     }
   }
