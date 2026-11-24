@@ -75,7 +75,14 @@ const resumo = (s) => { console.log(s); if (process.env.GITHUB_STEP_SUMMARY) fs.
       let pub = prep.ja ? { ok: true, link: prep.link, media_id: prep.media_id } : null;
       if (pub) resumo(`- ${post.titulo}: já estava no Instagram, não publiquei de novo`);
       for (let i = 0; i < 20 && !pub; i++) {
-        pub = await chamar({ acao: 'publicar', criacao: prep.criacao, arquivos: prep.arquivos.join(','), tipo: post.tipo, titulo: post.titulo, legenda: post.legenda });
+        try {
+          pub = await chamar({ acao: 'publicar', criacao: prep.criacao, arquivos: prep.arquivos.join(','), tipo: post.tipo, titulo: post.titulo, legenda: post.legenda });
+        } catch (e) {
+          // Erro ou demora do Instagram: tenta de novo. A função confere se já publicou, então não repete.
+          if (i >= 5) throw e;
+          console.log(`Publicar falhou (${e.message}). Tentando de novo em 15s.`);
+          pub = { ok: false };
+        }
         if (pub.ok) break;
         pub = null;
         await new Promise((r) => setTimeout(r, 15000));
