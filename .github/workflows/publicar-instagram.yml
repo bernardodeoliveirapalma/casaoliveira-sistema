@@ -10,6 +10,11 @@ on:
   schedule:
     - cron: '0 12,16,22 * * *'   # 9h, 13h e 19h em Brasília
   workflow_dispatch:
+    inputs:
+      so_testar:
+        description: 'Só testar a conexão (não publica nada)'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -29,6 +34,7 @@ jobs:
         with:
           node-version: 20
       - name: Preparar o desenhista
+        if: ${{ inputs.so_testar != true }}
         run: |
           npm i --no-save playwright@1.48.2
           npx playwright install --with-deps chromium
@@ -38,3 +44,5 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git pull -q --rebase || true
           node conteudo/publicar.js
+        env:
+          SO_TESTAR: ${{ inputs.so_testar }}

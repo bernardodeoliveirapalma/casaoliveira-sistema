@@ -37,6 +37,10 @@ async function chamar(campos, arquivos = []) {
 const resumo = (s) => { console.log(s); if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, s + '\n'); };
 
 (async () => {
+  if (process.env.SO_TESTAR === 'true') {
+    const c = await chamar({ acao: 'conta' });
+    return resumo(`✅ Conexão ok com o Instagram @${c.conta}. Nada foi publicado.`);
+  }
   if (fs.existsSync(path.join(__dirname, 'PAUSAR'))) return resumo('Publicação pausada (existe conteudo/PAUSAR).');
   const conta = await chamar({ acao: 'conta' });
   resumo(`## Instagram @${conta.conta}`);
