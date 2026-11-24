@@ -60,7 +60,15 @@ const resumo = (s) => { console.log(s); if (process.env.GITHUB_STEP_SUMMARY) fs.
         const imgs = await render(arq, path.join('/tmp/laminas', nome.replace('.json', '')));
         arquivos = imgs.map((f) => ['arquivo', f]);
       }
-      const prep = await chamar(campos, arquivos);
+      let prep;
+      for (let t = 1; t <= 3; t++) {
+        try { prep = await chamar(campos, arquivos); break; } catch (e) {
+          // O Instagram às vezes não consegue baixar a imagem na primeira vez; tenta de novo.
+          if (t === 3) throw e;
+          console.log(`Tentativa ${t} falhou (${e.message}). Tentando de novo em 30s.`);
+          await new Promise((r) => setTimeout(r, 30000));
+        }
+      }
       let pub;
       for (let i = 0; i < 20; i++) {
         pub = await chamar({ acao: 'publicar', criacao: prep.criacao, arquivos: prep.arquivos.join(','), tipo: post.tipo, titulo: post.titulo, legenda: post.legenda });
