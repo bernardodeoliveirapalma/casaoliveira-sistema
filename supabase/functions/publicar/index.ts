@@ -8,9 +8,9 @@
 // Ao criar, DESLIGUE "Verify JWT".
 //
 // Segredo (Edge Functions > Secrets):
-//   IG_TOKEN   chave de publicação gerada no painel da Meta
-//              (depois a função renova sozinha e guarda na tabela
-//              instagram_token; precisa do SQL 13).
+//   IG_TOKEN   chave do "usuário do sistema" do portfólio Imobiliário
+//              Brasil no Meta Business (não vence). Se um dia trocar,
+//              basta atualizar o segredo. SQL 13 cria gaveta e histórico.
 //
 // Passos (campo "acao" no formulário):
 //   conta      confere a conexão e devolve o @ da conta
@@ -23,7 +23,8 @@ import { createRemoteJWKSet, jwtVerify } from 'npm:jose@5.9.6';
 
 const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
 const REPO = 'bernardodeoliveirapalma/casaoliveira-sistema';
-const IG = 'https://graph.instagram.com/v21.0';
+const IG = 'https://graph.facebook.com/v21.0';
+const IG_ID = '17841437643215213'; // @imobiliario.brasil (portfólio Imobiliário Brasil · Mercado e Casas)
 const GAVETA = 'conteudo';
 const JWKS = createRemoteJWKSet(new URL('https://token.actions.githubusercontent.com/.well-known/jwks'));
 const json = (b: unknown, s = 200) =>
@@ -44,23 +45,8 @@ async function autorizado(req: Request) {
 }
 
 async function chave(): Promise<string> {
-  const { data } = await db.from('instagram_token').select('token, renovado_em').eq('id', 1).maybeSingle();
-  let token = data?.token || Deno.env.get('IG_TOKEN') || '';
+  const token = Deno.env.get('IG_TOKEN') || '';
   if (!token) throw new Error('Chave do Instagram (IG_TOKEN) não cadastrada');
-  const dias = data ? (Date.now() - new Date(data.renovado_em).getTime()) / 864e5 : 999;
-  if (dias > 7) {
-    // A chave vale 60 dias; renovando toda semana ela nunca vence.
-    try {
-      const r = await fetch(`https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token=${token}`);
-      const j = await r.json();
-      if (j.access_token) {
-        token = j.access_token;
-        await db.from('instagram_token').upsert({ id: 1, token, renovado_em: new Date().toISOString() });
-      } else if (!data) {
-        await db.from('instagram_token').upsert({ id: 1, token, renovado_em: new Date().toISOString() });
-      }
-    } catch { /* tenta de novo na próxima */ }
-  }
   return token;
 }
 
@@ -100,8 +86,8 @@ Deno.serve(async (req) => {
     const form = await req.formData();
     const acao = String(form.get('acao') || '');
     const token = await chave();
-    const eu = await ig('/me', token, { fields: 'user_id,username' }, 'GET');
-    const uid = eu.user_id || eu.id;
+    const eu = await ig(`/${IG_ID}`, token, { fields: 'username' }, 'GET');
+    const uid = IG_ID;
 
     if (acao === 'conta') return json({ ok: true, conta: eu.username });
 
