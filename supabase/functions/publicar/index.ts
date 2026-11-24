@@ -58,6 +58,14 @@ async function ig(path: string, token: string, params: Record<string, string> = 
   return j;
 }
 
+// Procura nos posts recentes da conta um com a mesma legenda (evita postar duas vezes).
+const inicio = (t: string) => t.replace(/\s+/g, ' ').trim().slice(0, 120);
+async function jaPublicado(uid: string, token: string, legenda: string) {
+  if (!legenda.trim()) return null;
+  const r = await ig(`/${uid}/media`, token, { fields: 'id,caption,permalink', limit: '30' }, 'GET');
+  return (r.data || []).find((m: { caption?: string }) => m.caption && inicio(m.caption) === inicio(legenda)) || null;
+}
+
 // O Instagram às vezes falha ao baixar uma imagem recém-enviada; espera e tenta de novo.
 async function criar(uid: string, token: string, params: Record<string, string>) {
   for (let t = 1; ; t++) {
@@ -101,11 +109,18 @@ Deno.serve(async (req) => {
     const eu = await ig(`/${IG_ID}`, token, { fields: 'username' }, 'GET');
     const uid = IG_ID;
 
-    if (acao === 'conta') return json({ ok: true, conta: eu.username });
+    if (acao === 'conta') {
+      const r = await ig(`/${uid}/media`, token, { fields: 'id,caption,permalink,timestamp', limit: '30' }, 'GET');
+      const posts = (r.data || []).map((m: { caption?: string; permalink?: string; timestamp?: string }) =>
+        ({ quando: m.timestamp, link: m.permalink, titulo: (m.caption || '').split('\n')[0].slice(0, 70) }));
+      return json({ ok: true, conta: eu.username, posts });
+    }
 
     if (acao === 'preparar') {
       const tipo = String(form.get('tipo') || 'carrossel');
       const legenda = String(form.get('legenda') || '');
+      const antes = await jaPublicado(uid, token, legenda);
+      if (antes) return json({ ok: true, ja: true, media_id: antes.id, link: antes.permalink || '' });
       const pasta = `${new Date().toISOString().slice(0, 10)}/${crypto.randomUUID().slice(0, 8)}`;
       const arquivos = form.getAll('arquivo').filter((x) => x instanceof File) as File[];
       if (!arquivos.length) return json({ erro: 'Nenhum arquivo enviado' }, 400);
@@ -137,7 +152,16 @@ Deno.serve(async (req) => {
       const criacao = String(form.get('criacao') || '');
       const status = await esperar(criacao, token, 90);
       if (status !== 'FINISHED') return json({ ok: false, status: 'IN_PROGRESS' }, 202);
-      const pub = await ig(`/${uid}/media_publish`, token, { creation_id: criacao });
+      let pub: { id: string };
+      try {
+        pub = await ig(`/${uid}/media_publish`, token, { creation_id: criacao });
+      } catch (e) {
+        // Às vezes o Instagram publica e mesmo assim responde com erro. Confere antes de desistir.
+        await new Promise((r) => setTimeout(r, 15000));
+        const achado = await jaPublicado(uid, token, String(form.get('legenda') || ''));
+        if (!achado) throw e;
+        pub = { id: achado.id };
+      }
       let link = '';
       try { link = (await ig(`/${pub.id}`, token, { fields: 'permalink' }, 'GET')).permalink || ''; } catch { /* sem link */ }
       const arquivos = String(form.get('arquivos') || '').split(',').filter(Boolean);

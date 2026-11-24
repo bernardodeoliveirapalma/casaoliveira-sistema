@@ -39,7 +39,10 @@ const resumo = (s) => { console.log(s); if (process.env.GITHUB_STEP_SUMMARY) fs.
 (async () => {
   if (process.env.SO_TESTAR === 'true') {
     const c = await chamar({ acao: 'conta' });
-    return resumo(`✅ Conexão ok com o Instagram @${c.conta}. Nada foi publicado.`);
+    resumo(`✅ Conexão ok com o Instagram @${c.conta}. Nada foi publicado.`);
+    resumo(`\nPosts na conta (${(c.posts || []).length}), do mais novo ao mais antigo:`);
+    for (const p of c.posts || []) resumo(`- ${p.quando} · ${p.titulo} · ${p.link}`);
+    return;
   }
   if (fs.existsSync(path.join(__dirname, 'PAUSAR'))) return resumo('Publicação pausada (existe conteudo/PAUSAR).');
   const conta = await chamar({ acao: 'conta' });
@@ -69,13 +72,15 @@ const resumo = (s) => { console.log(s); if (process.env.GITHUB_STEP_SUMMARY) fs.
           await new Promise((r) => setTimeout(r, 30000));
         }
       }
-      let pub;
-      for (let i = 0; i < 20; i++) {
+      let pub = prep.ja ? { ok: true, link: prep.link, media_id: prep.media_id } : null;
+      if (pub) resumo(`- ${post.titulo}: já estava no Instagram, não publiquei de novo`);
+      for (let i = 0; i < 20 && !pub; i++) {
         pub = await chamar({ acao: 'publicar', criacao: prep.criacao, arquivos: prep.arquivos.join(','), tipo: post.tipo, titulo: post.titulo, legenda: post.legenda });
         if (pub.ok) break;
+        pub = null;
         await new Promise((r) => setTimeout(r, 15000));
       }
-      if (!pub || !pub.ok) throw new Error('O Instagram não terminou de processar a tempo');
+      if (!pub) throw new Error('O Instagram não terminou de processar a tempo');
       fs.mkdirSync(FEITOS, { recursive: true });
       post.publicado = { em: new Date().toISOString(), link: pub.link, media_id: pub.media_id };
       fs.writeFileSync(path.join(FEITOS, nome), JSON.stringify(post, null, 1));
