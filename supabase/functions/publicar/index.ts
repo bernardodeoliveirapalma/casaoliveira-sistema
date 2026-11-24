@@ -58,6 +58,18 @@ async function ig(path: string, token: string, params: Record<string, string> = 
   return j;
 }
 
+// O Instagram às vezes falha ao baixar uma imagem recém-enviada; espera e tenta de novo.
+async function criar(uid: string, token: string, params: Record<string, string>) {
+  for (let t = 1; ; t++) {
+    try {
+      return (await ig(`/${uid}/media`, token, params)).id as string;
+    } catch (e) {
+      if (t >= 4) throw e;
+      await new Promise((r) => setTimeout(r, 6000 * t));
+    }
+  }
+}
+
 async function guardar(f: File, pasta: string, i: number) {
   const ext = (f.type.includes('mp4') || f.name.endsWith('.mp4')) ? 'mp4' : 'jpg';
   const caminho = `${pasta}/${String(i).padStart(2, '0')}.${ext}`;
@@ -99,6 +111,7 @@ Deno.serve(async (req) => {
       if (!arquivos.length) return json({ erro: 'Nenhum arquivo enviado' }, 400);
       const salvos = [];
       for (let i = 0; i < arquivos.length; i++) salvos.push(await guardar(arquivos[i], pasta, i + 1));
+      await new Promise((r) => setTimeout(r, 3000)); // dá tempo do arquivo ficar disponível
       let criacao: string;
       if (tipo === 'reel') {
         const capa = form.get('capa');
@@ -106,15 +119,15 @@ Deno.serve(async (req) => {
         if (c) salvos.push(c);
         const p: Record<string, string> = { media_type: 'REELS', video_url: salvos[0].url, caption: legenda, share_to_feed: 'true' };
         if (c) p.cover_url = c.url;
-        criacao = (await ig(`/${uid}/media`, token, p)).id;
+        criacao = await criar(uid, token, p);
       } else if (salvos.length === 1) {
-        criacao = (await ig(`/${uid}/media`, token, { image_url: salvos[0].url, caption: legenda })).id;
+        criacao = await criar(uid, token, { image_url: salvos[0].url, caption: legenda });
       } else {
         const filhos = [];
         for (const s of salvos.slice(0, 10)) {
-          filhos.push((await ig(`/${uid}/media`, token, { image_url: s.url, is_carousel_item: 'true' })).id);
+          filhos.push(await criar(uid, token, { image_url: s.url, is_carousel_item: 'true' }));
         }
-        criacao = (await ig(`/${uid}/media`, token, { media_type: 'CAROUSEL', children: filhos.join(','), caption: legenda })).id;
+        criacao = await criar(uid, token, { media_type: 'CAROUSEL', children: filhos.join(','), caption: legenda });
       }
       const status = await esperar(criacao, token, tipo === 'reel' ? 20 : 60);
       return json({ ok: true, criacao, status, arquivos: salvos.map((s) => s.caminho) });
