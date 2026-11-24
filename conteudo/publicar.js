@@ -8,7 +8,7 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
-const { render } = require('./render');
+const render = (...a) => require('./render').render(...a);
 
 const FUNCAO = 'https://ejyyarsxwpbwntbqewed.supabase.co/functions/v1/publicar';
 const FILA = path.join(__dirname, 'fila');
