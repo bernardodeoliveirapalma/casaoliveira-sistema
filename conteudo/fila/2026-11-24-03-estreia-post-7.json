@@ -1,0 +1,57 @@
+{
+ "titulo": "A casa na serra",
+ "tipo": "carrossel",
+ "legenda": "A casa na serra.\nMadeira, pedra e vidro, abertos para a mata. Morar perto da natureza virou um dos desejos mais fortes de quem procura uma segunda casa.\n\nA house in the hills: wood, stone and glass, open to the forest.\n\nFotos: juan verdaguer aguerrebehere, Jonathan Adams, Shiva Mardahi / Unsplash\n\n#casadecampo #arquitetura #serra #altopadrao #imobiliariobrasil",
+ "laminas": [
+  {
+   "t": "capa",
+   "foto": "https://images.unsplash.com/photo-1698994705178-d244d73ea573?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8MXx8bW9kZXJuJTIwaG91c2UlMjBtb3VudGFpbnMlMjBmb3Jlc3R8ZW58MXwxfHx8MTc5NTU0NjM3M3ww&ixlib=rb-4.1.0",
+   "rotulo": "Viver bem",
+   "titulo": "A casa<br>na serra",
+   "marca": true
+  },
+  {
+   "t": "foto",
+   "foto": "https://images.unsplash.com/photo-1782226829785-0a7f9568c5ac?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8N3x8bW9kZXJuJTIwaG91c2UlMjBtb3VudGFpbnMlMjBmb3Jlc3R8ZW58MXwxfHx8MTc5NTU0NjM3M3ww&ixlib=rb-4.1.0",
+   "credito": "Foto: Jonathan Adams / Unsplash",
+   "legenda": "Madeira, vidro e luz acesa no meio das árvores."
+  },
+  {
+   "t": "lista",
+   "rotulo": "Viver bem",
+   "titulo": "Antes de comprar na serra",
+   "itens": [
+    [
+     "Frio de verdade.",
+     "Lareira, piso aquecido ou bom isolamento."
+    ],
+    [
+     "Umidade.",
+     "Ventilação e materiais que não mofam."
+    ],
+    [
+     "Acesso na chuva.",
+     "Estrada asfaltada faz diferença no dia a dia."
+    ],
+    [
+     "Sol e vista.",
+     "Encosta voltada para o norte recebe mais sol."
+    ]
+   ]
+  },
+  {
+   "t": "foto",
+   "foto": "https://images.unsplash.com/photo-1642100669756-c14f600e297b?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8MTJ8fG1vZGVybiUyMGhvdXNlJTIwbW91bnRhaW5zJTIwZm9yZXN0fGVufDF8MXx8fDE3OTU1NDYzNzN8MA&ixlib=rb-4.1.0",
+   "credito": "Foto: Shiva Mardahi / Unsplash",
+   "legenda": ""
+  },
+  {
+   "t": "fim"
+  }
+ ],
+ "unsplash": [
+  "mcSZ1pNmUNU",
+  "re8RSxJ8qFM",
+  "h-apT6nSkNI"
+ ]
+}

@@ -1,0 +1,53 @@
+{
+ "titulo": "Banho com vista",
+ "tipo": "carrossel",
+ "legenda": "Banho com vista.\nBanheira solta, janela grande e o verde do lado de fora. Um detalhe que transforma o banheiro no cômodo mais tranquilo da casa.\n\nA bath with a view: freestanding tub, large window, green outside.\n\nFotos: Franco Debartolo, Valentin Lacoste / Unsplash\n\n#banheiro #designdeinteriores #detalhes #imobiliariobrasil",
+ "laminas": [
+  {
+   "t": "capa",
+   "foto": "https://images.unsplash.com/photo-1778731660076-f446d59aa1d0?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8MXx8bHV4dXJ5JTIwYmF0aHJvb20lMjBiYXRodHViJTIwd2luZG93fGVufDF8MXx8fDE3OTU1NDYzOTl8MA&ixlib=rb-4.1.0",
+   "rotulo": "Detalhe que faz a casa",
+   "titulo": "Banho<br>com vista",
+   "marca": false
+  },
+  {
+   "t": "foto",
+   "foto": "https://images.unsplash.com/photo-1794999255210-8084e2e661ff?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8Mnx8bHV4dXJ5JTIwYmF0aHJvb20lMjBiYXRodHViJTIwd2luZG93fGVufDF8MXx8fDE3OTU1NDYzOTl8MA&ixlib=rb-4.1.0",
+   "credito": "Foto: Valentin Lacoste / Unsplash",
+   "legenda": "A banheira perto da janela, com a luz entrando de lado."
+  },
+  {
+   "t": "lista",
+   "rotulo": "Detalhe que faz a casa",
+   "titulo": "Como pensar o banho com vista",
+   "itens": [
+    [
+     "Privacidade primeiro.",
+     "Vegetação, altura da janela ou vidro com película."
+    ],
+    [
+     "Janela na linha dos olhos.",
+     "Pensada para quem está sentado na banheira."
+    ],
+    [
+     "Piso que aguenta água.",
+     "Pedra natural ou porcelanato antiderrapante."
+    ]
+   ]
+  },
+  {
+   "t": "foto",
+   "foto": "https://images.unsplash.com/photo-1776482128011-c707121f081a?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8M3x8bHV4dXJ5JTIwYmF0aHJvb20lMjBiYXRodHViJTIwd2luZG93fGVufDF8MXx8fDE3OTU1NDYzOTl8MA&ixlib=rb-4.1.0",
+   "credito": "Foto: Franco Debartolo / Unsplash",
+   "legenda": ""
+  },
+  {
+   "t": "fim"
+  }
+ ],
+ "unsplash": [
+  "Ns3T2jCfQFk",
+  "KaBd7jsgnkU",
+  "3M74VAZi-rE"
+ ]
+}

@@ -1,0 +1,57 @@
+{
+ "titulo": "O novo luxo é calmo",
+ "tipo": "carrossel",
+ "legenda": "O novo luxo é calmo.\nMenos objetos, mais luz, materiais naturais e espaço para respirar. A casa de alto padrão deixou de ser sobre quantidade e passou a ser sobre sensação.\n\nThe new luxury is calm. Less clutter, more light, natural materials and room to breathe.\n\nFotos: Inside Weather, Amber Kipp / Unsplash\n\n#arquitetura #designdeinteriores #altopadrao #casasbrasileiras #imobiliariobrasil",
+ "laminas": [
+  {
+   "t": "capa",
+   "foto": "https://images.unsplash.com/photo-1567016376408-0226e4d0c1ea?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8MXx8bWluaW1hbCUyMGNhbG0lMjBpbnRlcmlvcnxlbnwxfDF8fHwxNzk1NTQ2Mzc0fDA&ixlib=rb-4.1.0",
+   "rotulo": "Tendência",
+   "titulo": "O novo luxo<br>é calmo",
+   "marca": false
+  },
+  {
+   "t": "foto",
+   "foto": "https://images.unsplash.com/photo-1701817822150-2d218d8610e6?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8NXx8bWluaW1hbCUyMGNhbG0lMjBpbnRlcmlvcnxlbnwxfDF8fHwxNzk1NTQ2Mzc0fDA&ixlib=rb-4.1.0",
+   "credito": "Foto: Amber Kipp / Unsplash",
+   "legenda": ""
+  },
+  {
+   "t": "lista",
+   "rotulo": "Tendência",
+   "titulo": "Sinais do novo luxo",
+   "itens": [
+    [
+     "Luz natural.",
+     "Janelas grandes e poucas cortinas pesadas."
+    ],
+    [
+     "Materiais naturais.",
+     "Madeira, linho, pedra e cal."
+    ],
+    [
+     "Menos objetos.",
+     "Espaço vazio como parte do projeto."
+    ],
+    [
+     "Silêncio.",
+     "Acústica pensada, longe do barulho da rua."
+    ]
+   ]
+  },
+  {
+   "t": "foto",
+   "foto": "https://images.unsplash.com/photo-1706494350398-8e1da6a80f89?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8N3x8bWluaW1hbCUyMGNhbG0lMjBpbnRlcmlvcnxlbnwxfDF8fHwxNzk1NTQ2Mzc0fDA&ixlib=rb-4.1.0",
+   "credito": "Foto: Amber Kipp / Unsplash",
+   "legenda": ""
+  },
+  {
+   "t": "fim"
+  }
+ ],
+ "unsplash": [
+  "Uxqlfigh6oE",
+  "Wg380n-aD7Q",
+  "KYyy5WA_1qU"
+ ]
+}

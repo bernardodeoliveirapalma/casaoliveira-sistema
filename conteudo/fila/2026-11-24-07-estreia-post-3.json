@@ -1,0 +1,64 @@
+{
+ "titulo": "A escada como escultura",
+ "tipo": "carrossel",
+ "legenda": "A escada como escultura.\nQuando bem desenhada, a escada deixa de ser só passagem e vira a peça principal da casa. Luz escondida no degrau faz o resto.\n\nThe staircase as sculpture.\n\nFotos: Frugal Flyer, Ibrahim Abazid, Madeline Liu, Neon Wang / Unsplash\n\n#arquitetura #escada #design #imobiliariobrasil",
+ "laminas": [
+  {
+   "t": "capa",
+   "foto": "https://images.unsplash.com/photo-1719941069639-e6735f177812?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8NHx8c2N1bHB0dXJhbCUyMHN0YWlyY2FzZXxlbnwxfDF8fHwxNzk1NTQ2MzcxfDA&ixlib=rb-4.1.0",
+   "rotulo": "Arquitetura",
+   "titulo": "A escada<br>como escultura",
+   "marca": false
+  },
+  {
+   "t": "foto",
+   "foto": "https://images.unsplash.com/photo-1587574640043-c22c11ddddc0?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8Nnx8c2N1bHB0dXJhbCUyMHN0YWlyY2FzZXxlbnwxfDF8fHwxNzk1NTQ2MzcxfDA&ixlib=rb-4.1.0",
+   "credito": "Foto: Ibrahim Abazid / Unsplash",
+   "legenda": "Curvas contínuas e branco total. A escada como o centro da casa."
+  },
+  {
+   "t": "foto",
+   "foto": "https://images.unsplash.com/photo-1774979517573-7e7d4ea6561c?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8OXx8c2N1bHB0dXJhbCUyMHN0YWlyY2FzZXxlbnwxfDF8fHwxNzk1NTQ2MzcxfDA&ixlib=rb-4.1.0",
+   "credito": "Foto: Madeline Liu / Unsplash",
+   "legenda": ""
+  },
+  {
+   "t": "lista",
+   "rotulo": "Arquitetura",
+   "titulo": "O que faz uma escada virar escultura",
+   "itens": [
+    [
+     "Forma contínua.",
+     "Curva ou espiral que se lê como uma peça só."
+    ],
+    [
+     "Um material.",
+     "Pedra, concreto ou madeira do primeiro ao último degrau."
+    ],
+    [
+     "Luz escondida.",
+     "Fita de LED sob o degrau ou no corrimão."
+    ],
+    [
+     "Guarda-corpo leve.",
+     "Vidro ou parede, para não competir com a forma."
+    ]
+   ]
+  },
+  {
+   "t": "foto",
+   "foto": "https://images.unsplash.com/photo-1762419757094-f9402c3d489d?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8MTB8fHNjdWxwdHVyYWwlMjBzdGFpcmNhc2V8ZW58MXwxfHx8MTc5NTU0NjM3MXww&ixlib=rb-4.1.0",
+   "credito": "Foto: Neon Wang / Unsplash",
+   "legenda": ""
+  },
+  {
+   "t": "fim"
+  }
+ ],
+ "unsplash": [
+  "ZMozUg3eDrY",
+  "HYsXj18eEkk",
+  "GPjZo-pz0bM",
+  "KaA8vQB9Hdg"
+ ]
+}

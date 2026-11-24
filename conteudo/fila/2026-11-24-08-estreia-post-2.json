@@ -1,0 +1,53 @@
+{
+ "titulo": "A luz quente do quarto",
+ "tipo": "carrossel",
+ "legenda": "A luz quente do quarto.\nJanela bem posicionada, cortina leve e tons de terra. O quarto que recebe o sol do fim de tarde é o que mais vende sensação de casa.\n\nWarm light in the bedroom.\n\nFotos: Matthieu Lemarchal, Archee Lal, brbrihan__ / Unsplash\n\n#quarto #designdeinteriores #luznatural #imobiliariobrasil",
+ "laminas": [
+  {
+   "t": "capa",
+   "foto": "https://images.unsplash.com/photo-1631642659688-ea5ee49f099e?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8MTB8fGJlZHJvb20lMjB3YXJtJTIwbGlnaHR8ZW58MXwxfHx8MTc5NTU0NjM3MXww&ixlib=rb-4.1.0",
+   "rotulo": "Detalhe que faz a casa",
+   "titulo": "A luz quente<br>do quarto",
+   "marca": false
+  },
+  {
+   "t": "foto",
+   "foto": "https://images.unsplash.com/photo-1764760764956-fcb78be107a5?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8MTJ8fGJlZHJvb20lMjB3YXJtJTIwbGlnaHR8ZW58MXwxfHx8MTc5NTU0NjM3MXww&ixlib=rb-4.1.0",
+   "credito": "Foto: Archee Lal / Unsplash",
+   "legenda": "Tons de terra, luz baixa e quase nada sobre os móveis."
+  },
+  {
+   "t": "lista",
+   "rotulo": "Detalhe que faz a casa",
+   "titulo": "Três escolhas que aquecem o quarto",
+   "itens": [
+    [
+     "Lâmpada quente.",
+     "Cerca de 2700K, a cor de luz mais acolhedora."
+    ],
+    [
+     "Luz indireta.",
+     "Na cabeceira ou na parede, nunca só o plafon no teto."
+    ],
+    [
+     "Tecidos naturais.",
+     "Linho na cortina e na cama filtram e suavizam o sol."
+    ]
+   ]
+  },
+  {
+   "t": "foto",
+   "foto": "https://images.unsplash.com/photo-1662919247374-531b4fa13e63?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8Nnx8YmVkcm9vbSUyMHdhcm0lMjBsaWdodHxlbnwxfDF8fHwxNzk1NTQ2MzcxfDA&ixlib=rb-4.1.0",
+   "credito": "Foto: brbrihan__ / Unsplash",
+   "legenda": ""
+  },
+  {
+   "t": "fim"
+  }
+ ],
+ "unsplash": [
+  "DoTKoAC5hqg",
+  "hkCXcR2mcds",
+  "t958JBIQdAM"
+ ]
+}

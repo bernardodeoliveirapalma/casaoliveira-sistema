@@ -1,0 +1,40 @@
+# Publica no Instagram do Imobiliário Brasil (@imobiliario.brasil).
+# Roda quando um post novo entra em conteudo/fila, nos horários abaixo
+# (para posts agendados) ou pelo botão "Run workflow".
+# Para pausar: crie o arquivo conteudo/PAUSAR.
+name: Publicar no Instagram
+
+on:
+  push:
+    paths: ['conteudo/fila/**']
+  schedule:
+    - cron: '0 12,16,22 * * *'   # 9h, 13h e 19h em Brasília
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: publicar-instagram
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Preparar o desenhista
+        run: |
+          npm i --no-save playwright@1.48.2
+          npx playwright install --with-deps chromium
+      - name: Publicar o que está na fila
+        run: |
+          git config user.name "Robô Imobiliário Brasil"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git pull -q --rebase || true
+          node conteudo/publicar.js

@@ -1,0 +1,62 @@
+{
+ "titulo": "Antes de comprar, pergunte",
+ "tipo": "carrossel",
+ "legenda": "Antes de comprar, pergunte.\n1. A documentação do imóvel está em dia?\n2. Quanto custa o condomínio e o IPTU?\n3. Como bate o sol em cada cômodo?\n4. O que está previsto para ser construído ao redor?\n5. Quanto custa manter a casa por um ano?\nSalve e use na próxima visita.\n\nBefore buying, ask: paperwork, monthly fees, sunlight, what will be built nearby, yearly upkeep.\n\nFotos: Caroline Badran, Roberto Nickson / Unsplash\n\n#guiadecompra #comprarimovel #mercadoimobiliario #imobiliariobrasil",
+ "laminas": [
+  {
+   "t": "capa",
+   "foto": "https://images.unsplash.com/photo-1758565811178-6341e9999f48?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8NXx8bW9kZXJuJTIwbGl2aW5nJTIwcm9vbSUyMGFyY2hpdGVjdHVyZXxlbnwxfDF8fHwxNzk1NTQ2MzcyfDA&ixlib=rb-4.1.0",
+   "rotulo": "Guia de compra",
+   "titulo": "Antes de comprar,<br>pergunte",
+   "marca": false
+  },
+  {
+   "t": "numero",
+   "rotulo": "Guia de compra",
+   "n": "1",
+   "titulo": "A documentação está em dia?",
+   "texto": "Peça a matrícula atualizada no cartório e confira se não há pendências no nome do imóvel ou do vendedor."
+  },
+  {
+   "t": "numero",
+   "rotulo": "Guia de compra",
+   "n": "2",
+   "titulo": "Quanto custa por mês?",
+   "texto": "Condomínio, IPTU e taxas extras. Esse valor entra na conta tanto quanto o preço."
+  },
+  {
+   "t": "numero",
+   "rotulo": "Guia de compra",
+   "n": "3",
+   "titulo": "Como bate o sol?",
+   "texto": "Visite em horários diferentes. Sol da manhã nos quartos costuma ser o mais valorizado."
+  },
+  {
+   "t": "numero",
+   "rotulo": "Guia de compra",
+   "n": "4",
+   "titulo": "O que vai ser construído ao redor?",
+   "texto": "Consulte a prefeitura sobre o que é permitido nos terrenos vizinhos. A vista de hoje pode mudar."
+  },
+  {
+   "t": "numero",
+   "rotulo": "Guia de compra",
+   "n": "5",
+   "titulo": "Quanto custa manter por um ano?",
+   "texto": "Manutenção, jardim, piscina, segurança. Casas grandes pedem uma reserva anual."
+  },
+  {
+   "t": "foto",
+   "foto": "https://images.unsplash.com/photo-1564078516393-cf04bd966897?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8MXx8bW9kZXJuJTIwbGl2aW5nJTIwcm9vbSUyMGFyY2hpdGVjdHVyZXxlbnwxfDF8fHwxNzk1NTQ2MzcyfDA&ixlib=rb-4.1.0",
+   "credito": "Foto: Roberto Nickson / Unsplash",
+   "legenda": "Salve este guia e use na próxima visita."
+  },
+  {
+   "t": "fim"
+  }
+ ],
+ "unsplash": [
+  "aDtv0uDomA0",
+  "rEJxpBskj3Q"
+ ]
+}

@@ -1,0 +1,29 @@
+{
+ "titulo": "Glossário: VGV",
+ "tipo": "carrossel",
+ "legenda": "VGV é Valor Geral de Vendas: a soma do preço de todas as unidades de um empreendimento. É o número que construtoras e incorporadoras usam para falar do tamanho de um lançamento.\nSalve para consultar.\n\nVGV (Valor Geral de Vendas) is the total sales value of all units in a development.\n\n#mercadoimobiliario #glossario #investimentoimobiliario #imobiliariobrasil",
+ "laminas": [
+  {
+   "t": "glossario",
+   "termo": "VGV",
+   "texto": "Valor Geral de Vendas. A soma do preço de todas as unidades de um empreendimento."
+  },
+  {
+   "t": "texto",
+   "rotulo": "Glossário",
+   "titulo": "Na prática",
+   "texto": "Um prédio com 100 apartamentos de R$ 1 milhão cada tem VGV de R$ 100 milhões."
+  },
+  {
+   "t": "texto",
+   "rotulo": "Glossário",
+   "titulo": "O que o VGV não é",
+   "texto": "Não é lucro nem faturamento garantido. É o valor total se todas as unidades forem vendidas pelo preço de tabela. Serve para medir o porte de um lançamento.",
+   "escuro": true
+  },
+  {
+   "t": "fim"
+  }
+ ],
+ "unsplash": []
+}

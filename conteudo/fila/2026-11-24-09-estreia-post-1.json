@@ -1,0 +1,47 @@
+{
+ "titulo": "O fim de tarde que vende a casa",
+ "tipo": "carrossel",
+ "legenda": "O fim de tarde que vende a casa.\nVidro do chão ao teto, espelho d'água e a última luz do dia. É nessa hora que uma casa mostra quem ela é.\nBem-vindo ao Imobiliário Brasil: casas, arquitetura e o mercado de alto padrão, com a nossa leitura, todos os dias.\n\nThe sunset that sells the house. Welcome to Imobiliário Brasil.\n\nFotos: Woody Kelly, Tyler Rooney, Keszthelyi Timi / Unsplash\n\n#casasqueinspiram #arquitetura #altopadrao #imobiliariobrasil",
+ "laminas": [
+  {
+   "t": "capa",
+   "foto": "https://images.unsplash.com/photo-1651010967601-8cc281c00dc6?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8N3x8bW9kZXJuJTIwaG91c2UlMjBwb29sJTIwc3Vuc2V0fGVufDF8MXx8fDE3OTU1NDYzNTF8MA&ixlib=rb-4.1.0",
+   "rotulo": "Casas que inspiram",
+   "titulo": "O fim de tarde<br>que vende a casa",
+   "marca": true
+  },
+  {
+   "t": "foto",
+   "foto": "https://images.unsplash.com/photo-1710593462883-bdf69f8e77de?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8M3x8bW9kZXJuJTIwaG91c2UlMjBwb29sJTIwc3Vuc2V0fGVufDF8MXx8fDE3OTU1NDYzNTF8MA&ixlib=rb-4.1.0",
+   "credito": "Foto: Tyler Rooney / Unsplash",
+   "legenda": "Vidro, água e a última luz do dia. Nessa hora a casa se abre para fora."
+  },
+  {
+   "t": "texto",
+   "rotulo": "Casas que inspiram",
+   "titulo": "Por que o fim de tarde vende",
+   "texto": "A luz baixa e quente valoriza madeira, pedra e concreto. As luzes de dentro acendem e o vidro fica transparente: dá para ver a casa inteira de fora."
+  },
+  {
+   "t": "foto",
+   "foto": "https://images.unsplash.com/photo-1564343128896-3ffbcf9439e5?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8OXx8bW9kZXJuJTIwaG91c2UlMjBwb29sJTIwc3Vuc2V0fGVufDF8MXx8fDE3OTU1NDYzNTF8MA&ixlib=rb-4.1.0",
+   "credito": "Foto: Keszthelyi Timi / Unsplash",
+   "legenda": ""
+  },
+  {
+   "t": "texto",
+   "rotulo": "Casas que inspiram",
+   "titulo": "Para quem vende",
+   "texto": "Fotos e visitas marcadas no fim da tarde mostram o imóvel no seu melhor momento. Vale planejar a agenda pelo sol.",
+   "escuro": true
+  },
+  {
+   "t": "fim"
+  }
+ ],
+ "unsplash": [
+  "QOPq8YGBfX0",
+  "nxw9ITuPk_c",
+  "ELRmzd9fffc"
+ ]
+}
