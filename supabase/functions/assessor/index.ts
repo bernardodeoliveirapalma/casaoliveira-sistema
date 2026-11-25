@@ -197,7 +197,7 @@ function montarEmail(hoje: Tarefa[], atrasadas: Tarefa[]) {
   const html =
     `<div style="background:#F2F0EB;padding:32px 16px">` +
     `<div style="max-width:560px;margin:0 auto;background:#F2F0EB">` +
-    `<p style="margin:0;font:400 11px ${fonte};letter-spacing:0.22em;text-transform:uppercase;color:#3E4A36">Casa Oliveira · Assessor do dia</p>` +
+    `<p style="margin:0;font:400 11px ${fonte};letter-spacing:0.22em;text-transform:uppercase;color:#3E4A36">Assessor Bernardo</p>` +
     `<p style="margin:16px 0 0;font:400 24px/1.3 Georgia, serif;color:#111F0E">Bom dia, ${esc(NOME)}.</p>` +
     `<p style="margin:6px 0 0;font:400 15px ${fonte};color:#6A5745">${dataLonga}</p>` +
     rotulo('Tarefas de hoje · ' + hoje.length) +
@@ -227,7 +227,7 @@ async function enviarEmail(hoje: Tarefa[], atrasadas: Tarefa[]) {
     method: 'POST',
     headers: { 'api-key': BREVO, 'Content-Type': 'application/json', Accept: 'application/json' },
     body: JSON.stringify({
-      sender: { name: 'Assessor Casa Oliveira', email: DE },
+      sender: { name: 'Assessor Bernardo', email: DE },
       to: [{ email: EMAIL_PARA, name: NOME }],
       subject: m.assunto, htmlContent: m.html, textContent: m.texto,
       tags: ['assessor'],
