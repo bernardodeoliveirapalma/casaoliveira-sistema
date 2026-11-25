@@ -110,10 +110,20 @@ Deno.serve(async (req) => {
     const uid = IG_ID;
 
     if (acao === 'conta') {
-      const r = await ig(`/${uid}/media`, token, { fields: 'id,caption,permalink,timestamp', limit: '30' }, 'GET');
-      const posts = (r.data || []).map((m: { caption?: string; permalink?: string; timestamp?: string }) =>
-        ({ quando: m.timestamp, link: m.permalink, titulo: (m.caption || '').split('\n')[0].slice(0, 70) }));
-      return json({ ok: true, conta: eu.username, posts });
+      const r = await ig(`/${uid}/media`, token, { fields: 'id,caption,permalink,timestamp,media_type,like_count,comments_count', limit: '30' }, 'GET');
+      const posts = [];
+      for (const m of r.data || []) {
+        const p: Record<string, unknown> = { quando: m.timestamp, link: m.permalink, tipo: m.media_type,
+          titulo: (m.caption || '').split('\n')[0].slice(0, 70), curtidas: m.like_count, comentarios: m.comments_count };
+        try {
+          const ins = await ig(`/${m.id}/insights`, token, { metric: 'views,reach,saved,shares,total_interactions' }, 'GET');
+          for (const x of ins.data || []) p[x.name] = x.values?.[0]?.value ?? x.total_value?.value;
+        } catch (e) { p.insights_erro = (e as Error).message; }
+        posts.push(p);
+      }
+      let seguidores;
+      try { seguidores = (await ig(`/${uid}`, token, { fields: 'followers_count,media_count' }, 'GET')).followers_count; } catch { /* sem dado */ }
+      return json({ ok: true, conta: eu.username, seguidores, posts });
     }
 
     if (acao === 'preparar') {

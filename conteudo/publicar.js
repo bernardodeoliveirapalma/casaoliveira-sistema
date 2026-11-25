@@ -41,7 +41,8 @@ const resumo = (s) => { console.log(s); if (process.env.GITHUB_STEP_SUMMARY) fs.
     const c = await chamar({ acao: 'conta' });
     resumo(`✅ Conexão ok com o Instagram @${c.conta}. Nada foi publicado.`);
     resumo(`\nPosts na conta (${(c.posts || []).length}), do mais novo ao mais antigo:`);
-    for (const p of c.posts || []) resumo(`- ${p.quando} · ${p.titulo} · ${p.link}`);
+    if (c.seguidores !== undefined) resumo(`Seguidores: ${c.seguidores}`);
+    for (const p of c.posts || []) resumo(`- ${JSON.stringify(p)}`);
     return;
   }
   if (fs.existsSync(path.join(__dirname, 'PAUSAR'))) return resumo('Publicação pausada (existe conteudo/PAUSAR).');
