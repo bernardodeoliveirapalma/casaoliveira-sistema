@@ -10,6 +10,7 @@ a qualidade tem de sair pronta.
   (`git fetch origin claude/project-thread-eml3eg && git checkout -B claude/project-thread-eml3eg FETCH_HEAD`).
 - Começa em 25/11/2026: antes disso, pare sem criar nada.
 - Se existir `conteudo/PAUSAR`, pare: não crie nada.
+- Execuções canceladas (pare sem criar nada): 25/11/2026 às 19h (no lugar dela sai o post especial da Casa Oliveira).
 - Se já existir em `conteudo/fila/` um post com a data e o horário desta execução, pare (não duplique).
 - Para **não repetir tema, termo ou foto**, junte o histórico de todos os branches:
   `git fetch origin '+refs/heads/claude/*:refs/remotes/origin/claude/*'` e
