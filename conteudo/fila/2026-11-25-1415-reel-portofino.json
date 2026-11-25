@@ -1,0 +1,17 @@
+{
+ "titulo": "Por que as casas de Portofino são coloridas",
+ "tipo": "reel",
+ "legenda": "Por que as casas de Portofino são tão coloridas?\nConta a tradição local que as fachadas fortes ajudavam os pescadores a reconhecer a própria casa lá do mar. Hoje, a pequena vila da Ligúria é um dos cenários mais fotografados da Riviera Italiana.\n\nVocê moraria em uma casa amarela assim?\n\nSalve para a sua lista de lugares dos sonhos e mande para quem ama arquitetura.\n\nVídeo: AttilaPergel / Pixabay\n\n#portofino #arquitetura #italia #casasdossonhos #imobiliariobrasil",
+ "roteiro": {
+  "video": "https://cdn.pixabay.com/video/2024/07/15/221342_large.mp4",
+  "inicio": 0,
+  "credito": "Vídeo: AttilaPergel / Pixabay",
+  "cenas": [
+   {"texto": "Por que as casas de Portofino são tão coloridas?", "seg": 3.5},
+   {"rotulo": "Itália", "texto": "Conta a tradição: para os pescadores verem a própria casa lá do mar", "seg": 4},
+   {"texto": "Hoje, a vila é um dos cenários mais fotografados da Riviera", "seg": 3.5},
+   {"texto": "Salve para a sua lista de lugares dos sonhos", "seg": 3}
+  ]
+ },
+ "pixabay": [221342]
+}

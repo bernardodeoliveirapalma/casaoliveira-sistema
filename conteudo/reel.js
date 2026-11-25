@@ -21,13 +21,13 @@ const fs = require('fs');
 const path = require('path');
 
 const W = 1080, H = 1920, FIM = 2.5;
-const css = `@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=Jost:wght@300;400&display=block');
+const css = `@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Jost:wght@300;400&display=block');
 *{margin:0;box-sizing:border-box}html,body{background:transparent}
 body{width:${W}px;height:${H}px;position:relative;overflow:hidden;font-family:Jost;font-weight:300;color:#F2F0EB}
-.g{position:absolute;left:0;right:0;top:400px;height:1000px;background:radial-gradient(ellipse at center,rgba(17,20,14,.62) 0%,rgba(17,20,14,.35) 45%,rgba(17,20,14,0) 72%)}
+.g{position:absolute;left:0;right:0;top:480px;height:840px;background:linear-gradient(180deg,rgba(12,14,10,0) 0%,rgba(12,14,10,.78) 28%,rgba(12,14,10,.82) 50%,rgba(12,14,10,.78) 72%,rgba(12,14,10,0) 100%)}
 .t{position:absolute;left:90px;right:90px;top:0;bottom:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding-bottom:120px}
 .lbl{font-weight:400;font-size:26px;letter-spacing:.24em;text-transform:uppercase;opacity:.85;margin-bottom:28px}
-h1{font-family:'Cormorant Garamond';font-weight:500;font-size:96px;line-height:1.05;text-shadow:0 2px 24px rgba(0,0,0,.35)}
+h1{font-family:'Cormorant Garamond';font-weight:600;font-size:96px;line-height:1.05;text-shadow:0 2px 18px rgba(0,0,0,.55),0 0 2px rgba(0,0,0,.4)}
 h1.m{font-size:78px}h1.p{font-size:66px}
 .mark{position:absolute;top:150px;left:0;right:0;text-align:center;font-family:'Cormorant Garamond';font-size:40px;letter-spacing:.05em;text-shadow:0 1px 12px rgba(0,0,0,.4)}
 .cred{position:absolute;left:0;right:0;bottom:330px;text-align:center;font-size:20px;opacity:.75;letter-spacing:.04em;text-shadow:0 0 8px rgba(0,0,0,.6)}
