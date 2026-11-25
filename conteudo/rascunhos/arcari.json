@@ -49,7 +49,9 @@
    "titulo": "Escolher antes, para o cliente escolher melhor",
    "texto": "A ideia da curadoria imobiliária é fazer a seleção antes. Em vez de mostrar dezenas de imóveis, a Casa Oliveira escolhe poucos, conhece cada um a fundo e conduz o cliente do início ao fim.",
    "foto": "../midia/arcari/10.jpg",
-   "alturaFoto": 440
+   "alturaFoto": 560,
+   "posicaoFoto": "center 58%",
+   "notaFoto": "Ane e Bernardo com os sócios da GBDA, incorporadora da Estância Arcari."
   },
   {
    "t": "texto",
