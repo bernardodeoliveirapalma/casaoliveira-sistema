@@ -60,12 +60,15 @@ Se a função de vídeos responder que falta a chave (`PIXABAY_KEY`), faça o ca
  "titulo": "...", "tipo": "reel",
  "legenda": "Gancho.\nContexto.\n\nFonte: ...\nVídeo: Nome / Pixabay\n\n#...",
  "roteiro": {
+  "estilo": "revista", "editoria": "Arquitetura",
   "video": "<campo arquivo do vídeo escolhido>", "inicio": 0, "credito": "Vídeo: Nome / Pixabay",
   "cenas": [ {"texto": "Gancho", "seg": 3}, {"rotulo": "Mercado", "texto": "Frase 2", "seg": 3.5}, {"texto": "Salve e mande para quem...", "seg": 3} ]
  },
  "pixabay": [123456]
 }
 ```
+- Destaque: coloque entre *asteriscos* as 2 a 4 palavras mais fortes de cada frase (viram itálico).
+  Frases em português impecável, com ponto final ou interrogação. Nunca travessão.
 - Conferir: `node conteudo/reel.js conteudo/fila/<arquivo>.json /tmp/previa-reel`, tire quadros
   (`ffmpeg -ss 1 -i reel.mp4 -frames:v 1 q1.jpg`, um por frase) e olhe cada um: texto legível sobre o vídeo,
   nada cortado, vídeo nítido. Não suba o mp4 para o repositório: o robô monta de novo na hora de publicar.
