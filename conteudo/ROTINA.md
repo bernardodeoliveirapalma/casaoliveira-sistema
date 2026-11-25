@@ -26,6 +26,26 @@ a qualidade tem de sair pronta.
 Alterne sub-temas para o feed ficar variado. Tom: revista (estilo Casa Vogue), positivo, claro,
 frases curtas, sem jargão sem explicar, sem exagero ("imperdível", "explodiu").
 
+## 1b. Feito para viralizar (obrigatório desde 25/11)
+A conta é nova: quem não segue só vê o post se ele for **salvo, compartilhado ou comentado**.
+Cada carrossel precisa de um motivo forte para isso. Antes de escrever, escolha 1 gancho:
+- **Dinheiro e número concreto:** "Quanto custa morar em...", "R$ 1 milhão compra isso em 5 cidades", "O m² mais caro do Brasil".
+- **Ranking ou lista:** "As 5 cidades que mais valorizaram em 2026", "7 erros que custam caro na compra".
+- **Curiosidade ou segredo:** "Ninguém te conta isso antes de assinar", "Por que apartamento de canto vale mais".
+- **Famosos e casas icônicas:** casas de famosos, mansões e projetos que estão no noticiário (só com fonte; só fotos liberadas no Unsplash, sem fotos da casa real se não forem livres; diga "imagem ilustrativa").
+- **Comparação:** "Alugar ou comprar em 2026?", "Casa x apartamento", "Floripa x Balneário".
+- **Utilidade para salvar:** checklists, glossários, passo a passo de financiamento.
+Regras do gancho:
+- A **capa** é o anúncio: título com até 7 palavras, curioso ou com número/valor. Proibido título só descritivo
+  ("A luz quente do quarto" não serve; "O truque de luz que faz o quarto parecer hotel" serve).
+- A 2ª lâmina entrega a promessa logo de cara (resposta, número ou primeiro item).
+- Penúltima lâmina com algo que dá vontade de mandar para alguém (o dado mais surpreendente ou a dica final).
+- Legenda: 1ª linha = gancho; termine com uma pergunta simples para comentar ("Você moraria aqui?",
+  "Qual cidade faltou?") e um pedido claro: "Salve para consultar depois e mande para quem está procurando imóvel."
+- Use 3 a 5 hashtags de assunto, não genéricas demais (#mercadoimobiliario #financiamentoimobiliario #arquiteturabrasileira ...).
+- Notícia só vale se for de interesse amplo (bolso, cidade grande, famosos, recorde). Notícia técnica de setor vira gancho de bolso
+  ("O que a alta dos juros muda na sua parcela").
+
 ## 2. Fatos (regra de ouro)
 - Número, data, nome ou notícia **só com fonte confiável checada nesta execução** (WebSearch e leitura
   da página). Prefira fontes primárias (Banco Central, IBGE, FipeZap, Secovi, Abrainc, CBIC, prefeituras)
