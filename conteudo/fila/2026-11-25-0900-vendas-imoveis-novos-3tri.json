@@ -1,0 +1,66 @@
+{
+ "titulo": "Vendas de imóveis novos sobem no 3º tri",
+ "tipo": "carrossel",
+ "legenda": "Vendas de imóveis novos sobem no 3º trimestre.\nForam 108,4 mil unidades vendidas entre julho e setembro de 2026, 2,7% a mais que um ano antes. Os lançamentos cresceram 1%, para 119,7 mil. O Minha Casa, Minha Vida puxou o resultado. No ano, as vendas somam 335,3 mil unidades, alta de 4,9%.\n\nNew home sales in Brazil rose 2.7% in Q3 2026, led by the Minha Casa, Minha Vida program.\n\nFonte: CBIC, pesquisa Brain Inteligência Estratégica, divulgada em 23/11 (via Jornal do Comércio).\nFotos: Felipe Demolin, Bernard Hermant, Behnam Norouzi / Unsplash\n\n#imobiliariobrasil #mercadoimobiliario #imoveis #minhacasaminhavida #construcaocivil",
+ "laminas": [
+  {
+   "t": "capa",
+   "foto": "https://images.unsplash.com/photo-1710473492229-888b362df2af?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8NHx8YXBhcnRtZW50JTIwYnVpbGRpbmclMjBicmF6aWx8ZW58MXwxfHx8MTc5NTYwNzM3NHww&ixlib=rb-4.1.0",
+   "rotulo": "Mercado",
+   "titulo": "Vendas de imóveis<br>novos sobem",
+   "marca": false
+  },
+  {
+   "t": "texto",
+   "rotulo": "Mercado",
+   "titulo": "O terceiro trimestre em números",
+   "texto": "Entre julho e setembro de 2026, o Brasil vendeu 108,4 mil imóveis novos, 2,7% a mais que no mesmo período de 2025. Os lançamentos somaram 119,7 mil unidades, alta de 1%."
+  },
+  {
+   "t": "foto",
+   "foto": "https://images.unsplash.com/photo-1519380400109-9ef80d934359?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8NHx8cmVzaWRlbnRpYWwlMjBidWlsZGluZyUyMGZhY2FkZXxlbnwxfDF8fHwxNzk1NjA3Mzc0fDA&ixlib=rb-4.1.0",
+   "credito": "Foto: Bernard Hermant / Unsplash",
+   "legenda": "A pesquisa olha só prédios residenciais em 221 cidades."
+  },
+  {
+   "t": "lista",
+   "rotulo": "Mercado",
+   "titulo": "O que puxou o resultado",
+   "itens": [
+    [
+     "Minha Casa, Minha Vida.",
+     "Lançamentos e vendas cresceram, com juros subsidiados."
+    ],
+    [
+     "Médio e alto padrão.",
+     "Recuaram no trimestre, com o crédito mais caro."
+    ],
+    [
+     "Ano até setembro.",
+     "335,3 mil unidades vendidas, alta de 4,9%."
+    ]
+   ]
+  },
+  {
+   "t": "numero",
+   "rotulo": "Para acompanhar",
+   "n": "10,2",
+   "titulo": "meses para vender o estoque",
+   "texto": "São 382 mil imóveis novos disponíveis. No ritmo atual, levariam 10,2 meses para sair. Há um ano, eram 8,9 meses. Mais opções para quem compra."
+  },
+  {
+   "t": "foto",
+   "foto": "https://images.unsplash.com/photo-1672508061327-6efaa65896e9?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8OHx8cmVzaWRlbnRpYWwlMjBidWlsZGluZyUyMGZhY2FkZXxlbnwxfDF8fHwxNzk1NjA3Mzc0fDA&ixlib=rb-4.1.0",
+   "credito": "Foto: Behnam Norouzi / Unsplash",
+   "legenda": "Fonte: CBIC, 23/11."
+  },
+  {
+   "t": "fim"
+  }
+ ],
+ "unsplash": [
+  "rbUJWlIAtME",
+  "87jHTTqQ4os",
+  "jy-FeAVPgTg"
+ ]
+}
