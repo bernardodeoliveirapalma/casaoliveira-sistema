@@ -57,7 +57,10 @@ const resumo = (s) => { console.log(s); if (process.env.GITHUB_STEP_SUMMARY) fs.
     if (post.quando && new Date(post.quando).getTime() > agora) { resumo(`- ${post.titulo}: agendado para ${post.quando}`); continue; }
     try {
       let arquivos, campos = { acao: 'preparar', tipo: post.tipo, legenda: post.legenda };
-      if (post.tipo === 'reel') {
+      if (post.tipo === 'reel' && post.roteiro) {
+        const feito = await require('./reel').reel(arq, path.join('/tmp/reels', nome.replace('.json', '')));
+        arquivos = [['arquivo', feito.video], ['capa', feito.capa]];
+      } else if (post.tipo === 'reel') {
         arquivos = [['arquivo', path.resolve(FILA, post.video)]];
         if (post.capa) arquivos.push(['capa', path.resolve(FILA, post.capa)]);
       } else {

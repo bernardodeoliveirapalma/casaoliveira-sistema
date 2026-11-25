@@ -20,7 +20,7 @@ a qualidade tem de sair pronta.
 | Horário | Linha | Exemplos |
 |---|---|---|
 | 9h | **Notícia ou mercado** do Brasil das últimas 48h | juros e financiamento, lançamentos, preços (FipeZap), leis, cidades que crescem |
-| 13h | **Casas e design que inspiram** | um ambiente, um material, uma tendência de arquitetura, casa de campo/praia |
+| 13h | **Reel** de casas e design que inspiram (ver 1c) | um ambiente, um material, uma tendência de arquitetura, casa de campo/praia |
 | 19h | **Guia ou investimento** | glossário (VGV, ITBI, permuta...), checklist de compra, como avaliar um bairro, aluguel x compra |
 
 Alterne sub-temas para o feed ficar variado. Tom: revista (estilo Casa Vogue), positivo, claro,
@@ -45,6 +45,30 @@ Regras do gancho:
 - Use 3 a 5 hashtags de assunto, não genéricas demais (#mercadoimobiliario #financiamentoimobiliario #arquiteturabrasileira ...).
 - Notícia só vale se for de interesse amplo (bolso, cidade grande, famosos, recorde). Notícia técnica de setor vira gancho de bolso
   ("O que a alta dos juros muda na sua parcela").
+
+## 1c. Reel do dia (execução das 13h)
+Na execução das 13h, faça um **reel** em vez de carrossel (reel é o que leva a conta para quem não segue).
+Se a função de vídeos responder que falta a chave (`PIXABAY_KEY`), faça o carrossel normal.
+- Buscar vídeos: `GET https://ejyyarsxwpbwntbqewed.supabase.co/functions/v1/videos?q=<termo em inglês>`
+  (ex.: "luxury house", "modern villa pool", "beach apartment aerial", "city skyline sunset", "interior design living room").
+  Escolha um vídeo bonito, estável, sem pessoas em destaque, sem marca d'água, com pelo menos 12s (`duracao`).
+- Roteiro: 3 a 4 frases curtas (até ~12 palavras cada), 3 a 4 segundos cada. A 1ª é o gancho (pergunta, valor
+  ou curiosidade); a última pede para salvar/compartilhar ou faz uma pergunta. Mesmas regras de fatos e fontes.
+- Formato no JSON:
+```json
+{
+ "titulo": "...", "tipo": "reel",
+ "legenda": "Gancho.\nContexto.\n\nFonte: ...\nVídeo: Nome / Pixabay\n\n#...",
+ "roteiro": {
+  "video": "<campo arquivo do vídeo escolhido>", "inicio": 0, "credito": "Vídeo: Nome / Pixabay",
+  "cenas": [ {"texto": "Gancho", "seg": 3}, {"rotulo": "Mercado", "texto": "Frase 2", "seg": 3.5}, {"texto": "Salve e mande para quem...", "seg": 3} ]
+ },
+ "pixabay": [123456]
+}
+```
+- Conferir: `node conteudo/reel.js conteudo/fila/<arquivo>.json /tmp/previa-reel`, tire quadros
+  (`ffmpeg -ss 1 -i reel.mp4 -frames:v 1 q1.jpg`, um por frase) e olhe cada um: texto legível sobre o vídeo,
+  nada cortado, vídeo nítido. Não suba o mp4 para o repositório: o robô monta de novo na hora de publicar.
 
 ## 2. Fatos (regra de ouro)
 - Número, data, nome ou notícia **só com fonte confiável checada nesta execução** (WebSearch e leitura
