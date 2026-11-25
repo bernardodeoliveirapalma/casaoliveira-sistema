@@ -1,7 +1,9 @@
 // ============================================================
 // Função "assessor" (Supabase Edge Function)
-// Todo dia de manhã manda para o WhatsApp de Bernardo as tarefas
-// do dia (e as atrasadas) que estão no ClickUp.
+// Todo dia de manhã manda para Bernardo as tarefas do dia (e as
+// atrasadas) que estão no ClickUp. Canal padrão: e-mail pelo Brevo
+// (grátis). O WhatsApp fica pronto, mas a Meta cobra por mensagem e
+// exige cartão cadastrado (decisão de Bernardo em 25/11: e-mail).
 //
 // Quem chama: o robô do GitHub (.github/workflows/assessor.yml),
 // todo dia às 7h (Brasília). Ao criar, DESLIGUE "Verify JWT".
@@ -9,16 +11,20 @@
 // Endereços (abrir no navegador):
 //   .../functions/v1/assessor?acao=preparar  envia o modelo "resumo_do_dia" para a Meta aprovar
 //   .../functions/v1/assessor?acao=status    mostra se o modelo já foi aprovado
+//   .../functions/v1/assessor?acao=entrega   mostra se o último resumo foi entregue
 //   .../functions/v1/assessor?acao=teste     manda o resumo agora (até 3 testes por dia)
 //   .../functions/v1/assessor                envio do dia (só 1 por dia, entre 5h e 12h)
-// Nenhum endereço mostra as tarefas na tela: elas só vão para o WhatsApp.
+// Nenhum endereço mostra as tarefas na tela: elas só vão para o e-mail (ou WhatsApp).
 //
 // Segredos (Edge Functions > Secrets):
 //   CLICKUP_TOKEN   chave pessoal do ClickUp (começa com pk_)
-//   ASSESSOR_PARA   WhatsApp que recebe os avisos, ex.: +5548999999999
+//   ASSESSOR_CANAL  (opcional) 'email' (padrão) ou 'whatsapp'
+//   ASSESSOR_EMAIL  (opcional) e-mail que recebe; padrão EMAIL_RESPOSTA (o Gmail de vocês)
+//   ASSESSOR_PARA   WhatsApp que recebe, só para o canal whatsapp, ex.: +5548999999999
 //   ASSESSOR_NOME   (opcional) nome no "Bom dia", padrão Bernardo
 //   ASSESSOR_DESDE  (opcional) ignora tarefas que venceram antes deste dia, padrão 2026-11-23
-// Usa também os que já existem: YCLOUD_API_KEY, WA_FROM, WA_WABA_ID.
+// Usa também os que já existem: BREVO_API_KEY, EMAIL_REMETENTE, EMAIL_RESPOSTA
+// (e-mail) e YCLOUD_API_KEY, WA_FROM, WA_WABA_ID (WhatsApp).
 // ============================================================
 import { createClient } from 'npm:@supabase/supabase-js@2.45.4';
 
@@ -30,6 +36,10 @@ const YCLOUD = Deno.env.get('YCLOUD_API_KEY') || '';
 const FROM = Deno.env.get('WA_FROM') || '';
 const WABA = Deno.env.get('WA_WABA_ID') || '';
 const MODELO = 'resumo_do_dia';
+const CANAL = (Deno.env.get('ASSESSOR_CANAL') || 'email').toLowerCase();
+const BREVO = Deno.env.get('BREVO_API_KEY') || '';
+const DE = Deno.env.get('EMAIL_REMETENTE') || '';
+const EMAIL_PARA = Deno.env.get('ASSESSOR_EMAIL') || Deno.env.get('EMAIL_RESPOSTA') || '';
 const FUSO = -3; // Brasília, sem horário de verão
 // Tarefas com vencimento antes deste dia são ignoradas (pedido de Bernardo em 23/11/2026:
 // o que ficou para trás no ClickUp não entra no resumo).
@@ -166,8 +176,74 @@ async function statusModelo() {
     (t.category && t.category !== 'UTILITY' ? ' · a Meta classificou como ' + t.category : '');
 }
 
+// ---------- e-mail (Brevo) ----------
+const esc = (t: string) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+const SEMANA = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
+
+function montarEmail(hoje: Tarefa[], atrasadas: Tarefa[]) {
+  const d = new Date(Date.now() + FUSO * 3600_000);
+  const dataLonga = SEMANA[d.getUTCDay()] + ', ' + d.getUTCDate() + ' de ' + MESES[d.getUTCMonth()];
+  const fonte = 'Helvetica, Arial, sans-serif';
+  const rotulo = (t: string) =>
+    `<p style="margin:28px 0 10px;font:400 11px ${fonte};letter-spacing:0.22em;text-transform:uppercase;color:#6A5745">${t}</p>`;
+  const linha = (t: Tarefa, extra: string) =>
+    `<tr><td style="padding:12px 0;border-top:1px solid #D6D0C2;font:400 15px/1.5 ${fonte};color:#3B2C20">${esc(t.nome)}</td>` +
+    `<td style="padding:12px 0 12px 16px;border-top:1px solid #D6D0C2;font:400 13px ${fonte};color:#6A5745;text-align:right;white-space:nowrap">${extra}</td></tr>`;
+  const tabela = (ts: Tarefa[], f: (t: Tarefa) => string) =>
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">${ts.map((t) => linha(t, f(t))).join('')}</table>`;
+  const vazio = (t: string) => `<p style="margin:0;font:400 15px ${fonte};color:#6A5745">${t}</p>`;
+
+  const html =
+    `<div style="background:#F2F0EB;padding:32px 16px">` +
+    `<div style="max-width:560px;margin:0 auto;background:#F2F0EB">` +
+    `<p style="margin:0;font:400 11px ${fonte};letter-spacing:0.22em;text-transform:uppercase;color:#3E4A36">Casa Oliveira · Assessor do dia</p>` +
+    `<p style="margin:16px 0 0;font:400 24px/1.3 Georgia, serif;color:#111F0E">Bom dia, ${esc(NOME)}.</p>` +
+    `<p style="margin:6px 0 0;font:400 15px ${fonte};color:#6A5745">${dataLonga}</p>` +
+    rotulo('Tarefas de hoje · ' + hoje.length) +
+    (hoje.length ? tabela(hoje, (t) => (t.comHora ? horaDe(t.vence) : 'hoje')) : vazio('Nenhuma tarefa marcada para hoje.')) +
+    (atrasadas.length ? rotulo('Atrasadas · ' + atrasadas.length) + tabela(atrasadas, (t) => 'desde ' + diaMes(t.vence)) : '') +
+    `<p style="margin:32px 0 0"><a href="https://app.clickup.com" style="display:inline-block;background:#3E4A36;color:#F2F0EB;text-decoration:none;font:400 14px ${fonte};padding:16px 28px;border-radius:24px">Abrir o ClickUp</a></p>` +
+    `<p style="margin:32px 0 0;font:400 12px ${fonte};color:#6A5745">Resumo automático das suas tarefas no ClickUp.</p>` +
+    `</div></div>`;
+
+  const texto = [
+    `Bom dia, ${NOME}.`, dataLonga, '',
+    `Tarefas de hoje (${hoje.length}):`,
+    ...(hoje.length ? hoje.map((t) => '- ' + t.nome + (t.comHora ? ' (' + horaDe(t.vence) + ')' : '')) : ['Nenhuma tarefa marcada para hoje.']),
+    ...(atrasadas.length ? ['', `Atrasadas (${atrasadas.length}):`, ...atrasadas.map((t) => '- ' + t.nome + ' (desde ' + diaMes(t.vence) + ')')] : []),
+    '', 'Abrir o ClickUp: https://app.clickup.com',
+  ].join('\n');
+
+  const assunto = hoje.length
+    ? `Suas tarefas de hoje · ${hoje.length}` + (atrasadas.length ? ` · ${atrasadas.length} atrasada${atrasadas.length > 1 ? 's' : ''}` : '')
+    : 'Nenhuma tarefa para hoje';
+  return { html, texto, assunto };
+}
+
+async function enviarEmail(hoje: Tarefa[], atrasadas: Tarefa[]) {
+  const m = montarEmail(hoje, atrasadas);
+  const r = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: { 'api-key': BREVO, 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({
+      sender: { name: 'Assessor Casa Oliveira', email: DE },
+      to: [{ email: EMAIL_PARA, name: NOME }],
+      subject: m.assunto, htmlContent: m.html, textContent: m.texto,
+      tags: ['assessor'],
+    }),
+  });
+  const corpo = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error('Brevo: ' + (corpo?.message || 'erro ' + r.status));
+  return String(corpo.messageId || '');
+}
+
 async function enviarResumo() {
   const { hoje, atrasadas } = await tarefasDoDia();
+  if (CANAL !== 'whatsapp') {
+    const id = await enviarEmail(hoje, atrasadas);
+    return { hoje: hoje.length, atrasadas: atrasadas.length, canal: 'email', mensagem: id };
+  }
   const r = await ycloud('/whatsapp/messages', {
     method: 'POST',
     body: JSON.stringify({
@@ -184,7 +260,7 @@ async function enviarResumo() {
       },
     }),
   });
-  return { hoje: hoje.length, atrasadas: atrasadas.length, mensagem: r.id };
+  return { hoje: hoje.length, atrasadas: atrasadas.length, canal: 'whatsapp', mensagem: r.id };
 }
 
 async function registrar(tipo: string, ok: boolean, detalhe: string) {
@@ -202,7 +278,10 @@ Deno.serve(async (req) => {
   const acao = new URL(req.url).searchParams.get('acao') || 'diario';
   try {
     const faltando = [
-      !CLICKUP && 'CLICKUP_TOKEN', !PARA && 'ASSESSOR_PARA', !YCLOUD && 'YCLOUD_API_KEY', !FROM && 'WA_FROM', !WABA && 'WA_WABA_ID',
+      !CLICKUP && 'CLICKUP_TOKEN',
+      ...(CANAL === 'whatsapp'
+        ? [!PARA && 'ASSESSOR_PARA', !YCLOUD && 'YCLOUD_API_KEY', !FROM && 'WA_FROM', !WABA && 'WA_WABA_ID']
+        : [!BREVO && 'BREVO_API_KEY', !DE && 'EMAIL_REMETENTE', !EMAIL_PARA && 'ASSESSOR_EMAIL']),
     ].filter(Boolean);
 
     if (acao === 'preparar') {
@@ -216,10 +295,35 @@ Deno.serve(async (req) => {
       return json({ ok: true, detalhe: 'Modelo "resumo_do_dia": ' + (await statusModelo()) });
     }
 
+    if (acao === 'entrega') {
+      // situação de entrega do último resumo (só status e erro, nunca o texto)
+      const { data } = await db.from('assessor_envios').select('dia, tipo, ok, detalhe, criado_em')
+        .order('criado_em', { ascending: false }).limit(1);
+      const u = data?.[0];
+      if (!u) return json({ ok: true, detalhe: 'Nenhum envio ainda' });
+      let id = '', canal = 'whatsapp';
+      try { const d = JSON.parse(u.detalhe || '{}'); id = d.mensagem || ''; canal = d.canal || 'whatsapp'; } catch { /* erro gravado como texto */ }
+      if (!id) return json({ ok: u.ok, quando: u.criado_em, tipo: u.tipo, detalhe: u.ok ? 'sem id' : u.detalhe });
+      if (canal === 'email') {
+        const r = await fetch('https://api.brevo.com/v3/smtp/statistics/events?limit=20&messageId=' + encodeURIComponent(id), {
+          headers: { 'api-key': BREVO, Accept: 'application/json' },
+        });
+        const ev = ((await r.json().catch(() => ({}))).events || []).map((e: any) => e.event);
+        return json({ ok: true, quando: u.criado_em, tipo: u.tipo, canal, eventos: ev.length ? ev : ['ainda sem eventos (aguarde 1 minuto)'] });
+      }
+      const m = await ycloud('/whatsapp/messages/' + id);
+      return json({
+        ok: true, quando: u.criado_em, tipo: u.tipo, situacao: m.status,
+        erro: m.errorCode ? m.errorCode + ' ' + (m.errorMessage || '') : null,
+        whatsappApiError: m.whatsappApiError || null, para_final: String(m.to || '').slice(-4),
+      });
+    }
+
     if (acao === 'status') {
       return json({
         ok: !faltando.length,
-        modelo: YCLOUD && WABA ? await statusModelo() : 'faltam os segredos da YCloud',
+        canal: CANAL,
+        modelo: CANAL !== 'whatsapp' ? 'não usado (canal e-mail)' : YCLOUD && WABA ? await statusModelo() : 'faltam os segredos da YCloud',
         segredos_faltando: faltando,
         enviado_hoje: (await contar('diario')) > 0,
       });
@@ -232,7 +336,7 @@ Deno.serve(async (req) => {
       try {
         const r = await enviarResumo();
         await registrar('teste', true, JSON.stringify(r));
-        return json({ ok: true, detalhe: `Enviado: ${r.hoje} para hoje, ${r.atrasadas} atrasadas. Confira o WhatsApp.` });
+        return json({ ok: true, detalhe: `Enviado por ${r.canal}: ${r.hoje} para hoje, ${r.atrasadas} atrasadas.` });
       } catch (e) {
         await registrar('teste', false, String((e as Error).message));
         throw e;
