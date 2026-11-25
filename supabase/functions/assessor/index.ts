@@ -9,6 +9,7 @@
 // Endereços (abrir no navegador):
 //   .../functions/v1/assessor?acao=preparar  envia o modelo "resumo_do_dia" para a Meta aprovar
 //   .../functions/v1/assessor?acao=status    mostra se o modelo já foi aprovado
+//   .../functions/v1/assessor?acao=entrega   mostra se o último resumo foi entregue
 //   .../functions/v1/assessor?acao=teste     manda o resumo agora (até 3 testes por dia)
 //   .../functions/v1/assessor                envio do dia (só 1 por dia, entre 5h e 12h)
 // Nenhum endereço mostra as tarefas na tela: elas só vão para o WhatsApp.
@@ -214,6 +215,23 @@ Deno.serve(async (req) => {
         if (!/exist|duplicate|já/i.test(msg)) throw e;
       }
       return json({ ok: true, detalhe: 'Modelo "resumo_do_dia": ' + (await statusModelo()) });
+    }
+
+    if (acao === 'entrega') {
+      // situação de entrega do último resumo (só status e erro, nunca o texto)
+      const { data } = await db.from('assessor_envios').select('dia, tipo, ok, detalhe, criado_em')
+        .order('criado_em', { ascending: false }).limit(1);
+      const u = data?.[0];
+      if (!u) return json({ ok: true, detalhe: 'Nenhum envio ainda' });
+      let id = '';
+      try { id = JSON.parse(u.detalhe || '{}').mensagem || ''; } catch { /* erro gravado como texto */ }
+      if (!id) return json({ ok: u.ok, quando: u.criado_em, tipo: u.tipo, detalhe: u.ok ? 'sem id' : u.detalhe });
+      const m = await ycloud('/whatsapp/messages/' + id);
+      return json({
+        ok: true, quando: u.criado_em, tipo: u.tipo, situacao: m.status,
+        erro: m.errorCode ? m.errorCode + ' ' + (m.errorMessage || '') : null,
+        whatsappApiError: m.whatsappApiError || null, para_final: String(m.to || '').slice(-4),
+      });
     }
 
     if (acao === 'status') {
