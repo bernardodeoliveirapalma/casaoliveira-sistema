@@ -27,7 +27,7 @@ p{font-size:33px;line-height:1.5}
 .claro{background:#F2F0EB;color:#111F0E}.escuro{background:#111F0E;color:#F2F0EB}
 ol{list-style:none;padding:0}li{font-size:33px;line-height:1.45;padding:26px 0;border-top:1px solid #D6D0C2}li b{font-weight:400;color:#111F0E}`;
 
-const foto = (u) => (u.includes('?') ? u + '&' : u + '?') + 'w=2400&q=90&fm=jpg';
+const foto = (u) => (/^https?:/.test(u) ? (u.includes('?') ? u + '&' : u + '?') + 'w=2400&q=90&fm=jpg' : u);
 const esc = (s = '') => String(s);
 
 function lamina(l, pg, tot) {
@@ -43,7 +43,7 @@ function lamina(l, pg, tot) {
       return `<div class=ph style="background-image:url('${foto(l.foto)}')"></div>${l.legenda ? `<div class=g></div><div class=capt>${esc(l.legenda)}</div>` : ''}<div class=cred>${esc(l.credito)}</div>`;
     case 'texto': {
       const cl = l.escuro ? 'escuro' : 'claro';
-      return `<div class="ph ${cl}"><div class="top lbl"><span>${esc(l.rotulo)}</span><span>${pag}</span></div><div style="position:absolute;left:80px;right:80px;top:300px"><h2>${esc(l.titulo)}</h2><p style="margin-top:48px;opacity:.92;color:${l.escuro ? '#F2F0EB' : '#3B2C20'}">${esc(l.texto)}</p></div></div>`;
+      return `<div class="ph ${cl}"><div class="top lbl"><span>${esc(l.rotulo)}</span><span>${pag}</span></div><div style="position:absolute;left:80px;right:80px;top:${l.foto ? 190 : 300}px"><h2>${esc(l.titulo)}</h2><p style="margin-top:48px;opacity:.92;color:${l.escuro ? '#F2F0EB' : '#3B2C20'}">${esc(l.texto)}</p></div>${l.foto ? `<div style="position:absolute;left:80px;right:80px;bottom:80px;height:${l.alturaFoto || 470}px;background:url('${foto(l.foto)}') center/cover"></div>` : ''}</div>`;
     }
     case 'lista':
       return `<div class="ph claro"><div class="top lbl"><span>${esc(l.rotulo)}</span><span>${pag}</span></div><div style="position:absolute;left:80px;right:80px;top:230px"><h2 style="margin-bottom:44px">${esc(l.titulo)}</h2><ol style="color:#3B2C20">${l.itens.map((x) => `<li><b>${esc(x[0])}</b> ${esc(x[1])}</li>`).join('')}</ol></div></div>`;
@@ -65,6 +65,7 @@ async function render(arq, saida) {
   for (let i = 0; i < L.length; i++) {
     const l = { ...L[i] };
     if (l.arquivo) l.arquivo = 'file://' + path.resolve(path.dirname(arq), l.arquivo);
+    if (l.foto && !/^https?:/.test(l.foto)) l.foto = 'file://' + path.resolve(path.dirname(arq), l.foto);
     const html = path.resolve(saida, '_l.html');
     fs.writeFileSync(html, `<html><head><meta charset=utf-8><style>${css}</style></head><body>${lamina(l, i + 1, L.length)}</body></html>`);
     await p.goto('file://' + html, { waitUntil: 'networkidle', timeout: 90000 });

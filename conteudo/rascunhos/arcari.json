@@ -1,0 +1,71 @@
+{
+ "titulo": "Mãe e filho levam supercarros à serra",
+ "tipo": "carrossel",
+ "legenda": "Mãe e filho levam supercarros à serra para apresentar condomínio.\n\nEm 31 de outubro, a Casa Oliveira, curadoria imobiliária de alto padrão de Florianópolis, levou 20 supercarros de convidados em comboio até a Estância Arcari, em Rancho Queimado, na Serra Catarinense. Foi o primeiro evento do condomínio, ainda no pré-lançamento.\n\nA ideia nasceu da família. Ane Oliveira soma mais de 16 anos no mercado de alto padrão. Bernardo, o filho, tem uma empresa de eventos automotivos e começa agora a carreira de corretor. No lugar de uma apresentação em sala, os clientes passaram o dia na serra: estrada, paisagem, churrasco e vinhos catarinenses.\n\nA Casa Oliveira tem a exclusividade comercial da Estância Arcari.\n\nVocê subiria a serra para conhecer um lugar assim?\n\n@casaoliveiracuradoria\n\n#mercadoimobiliario #serracatarinense #ranchoqueimado #altopadrao #supercarros",
+ "laminas": [
+  {
+   "t": "capa",
+   "foto": "../midia/arcari/06.jpg",
+   "rotulo": "Mercado · Serra Catarinense",
+   "titulo": "Mãe e filho levam<br>supercarros à serra<br>para apresentar<br>condomínio",
+   "marca": true
+  },
+  {
+   "t": "foto",
+   "foto": "../midia/arcari/17.jpg",
+   "credito": "Foto: Casa Oliveira",
+   "legenda": "Em 31 de outubro, 20 supercarros subiram a serra em comboio até a Estância Arcari, em Rancho Queimado."
+  },
+  {
+   "t": "texto",
+   "rotulo": "O evento",
+   "titulo": "Um pré-lançamento sem sala de apresentação",
+   "texto": "A Casa Oliveira, curadoria imobiliária de alto padrão de Florianópolis, trocou o estande pela estrada. Café da manhã, serra e almoço na própria Estância, com vinhos catarinenses. Foi o primeiro evento do condomínio.",
+   "foto": "../midia/arcari/05.jpg"
+  },
+  {
+   "t": "foto",
+   "foto": "../midia/arcari/13.jpg",
+   "credito": "Foto: Casa Oliveira",
+   "legenda": "Os carros no gramado da Estância, ao pé da mata."
+  },
+  {
+   "t": "texto",
+   "escuro": true,
+   "rotulo": "Quem está por trás",
+   "titulo": "Mãe e filho, dois mundos",
+   "texto": "Ane Oliveira soma mais de 16 anos no mercado de alto padrão. Bernardo, o filho, tem uma empresa de eventos automotivos e começa agora a carreira de corretor. O evento nasceu da união dos dois.",
+   "foto": "../midia/arcari/19.jpg"
+  },
+  {
+   "t": "foto",
+   "foto": "../midia/arcari/08.jpg",
+   "credito": "Foto: Casa Oliveira",
+   "legenda": "Ane Oliveira apresenta a Estância aos convidados."
+  },
+  {
+   "t": "texto",
+   "rotulo": "Curadoria imobiliária",
+   "titulo": "Escolher antes, para o cliente escolher melhor",
+   "texto": "A ideia da curadoria imobiliária é fazer a seleção antes. Em vez de mostrar dezenas de imóveis, a Casa Oliveira escolhe poucos, conhece cada um a fundo e conduz o cliente do início ao fim.",
+   "foto": "../midia/arcari/10.jpg",
+   "alturaFoto": 440
+  },
+  {
+   "t": "texto",
+   "rotulo": "Nas palavras deles",
+   "titulo": "“Ninguém escolhe um lugar assim olhando uma planta.”",
+   "texto": "“Unimos o que a gente mais gosta, carros e casas, para que nossos clientes vivessem um dia real na Serra Catarinense.” Ane & Bernardo, Casa Oliveira.",
+   "foto": "../midia/arcari/32.jpg"
+  },
+  {
+   "t": "foto",
+   "foto": "../midia/arcari/26.jpg",
+   "credito": "Foto: Casa Oliveira",
+   "legenda": "Estância Arcari, a 10 minutos do centro de Rancho Queimado. A Casa Oliveira tem a exclusividade comercial."
+  },
+  {
+   "t": "fim"
+  }
+ ]
+}
