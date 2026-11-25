@@ -60,7 +60,7 @@ Se a função de vídeos responder que falta a chave (`PIXABAY_KEY`), faça o ca
  "titulo": "...", "tipo": "reel",
  "legenda": "Gancho.\nContexto.\n\nFonte: ...\nVídeo: Nome / Pixabay\n\n#...",
  "roteiro": {
-  "estilo": "revista", "editoria": "Arquitetura",
+  "estilo": "cinema", "editoria": "Arquitetura",
   "video": "<campo arquivo do vídeo escolhido>", "inicio": 0, "credito": "Vídeo: Nome / Pixabay",
   "cenas": [ {"texto": "Gancho", "seg": 3}, {"rotulo": "Mercado", "texto": "Frase 2", "seg": 3.5}, {"texto": "Salve e mande para quem...", "seg": 3} ]
  },

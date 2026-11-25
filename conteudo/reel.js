@@ -7,7 +7,7 @@
 // No JSON do post:
 //  "tipo": "reel",
 //  "roteiro": {
-//    "estilo": "revista" | "cinema",   (padrão: revista)
+//    "estilo": "cinema" | "revista",   (padrão: cinema)
 //    "editoria": "Arquitetura",        (aparece no topo)
 //    "video": "<link do arquivo do Pixabay>",
 //    "inicio": 0,                      (segundo do vídeo onde começa)
@@ -104,7 +104,7 @@ async function reel(arq, saida) {
   const post = JSON.parse(fs.readFileSync(arq, 'utf8'));
   const r = post.roteiro;
   if (!r || !r.video || !(r.cenas || []).length) throw new Error('Reel sem roteiro (video e cenas)');
-  const E = r.estilo === 'cinema' ? cinema : revista;
+  const E = r.estilo === 'revista' ? revista : cinema;
   const emJanela = E === revista;
   fs.mkdirSync(saida, { recursive: true });
 
