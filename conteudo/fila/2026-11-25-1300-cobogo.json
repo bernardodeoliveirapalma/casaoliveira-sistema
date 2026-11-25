@@ -1,0 +1,58 @@
+{
+ "titulo": "Cobogó, o vazado brasileiro",
+ "tipo": "carrossel",
+ "legenda": "Cobogó, o vazado brasileiro.\nNasceu no Recife em 1929 para deixar o vento e a luz entrarem sem abrir mão da privacidade. O nome junta as sílabas de seus três criadores: Coimbra, Boeckmann e Góis. Hoje volta às fachadas, varandas e salas com um ar novo.\n\nThe cobogó: a Brazilian breeze block born in Recife in 1929, back in style today.\n\nFonte: Correio Braziliense, 24/10, com base no MAM Rio.\nFotos: Scott Webb, Zachary Keimig, Geraldine Lewa, Mitchell Luo / Unsplash\n\n#imobiliariobrasil #cobogo #arquitetura #design #arquiteturabrasileira",
+ "laminas": [
+  {
+   "t": "capa",
+   "foto": "https://images.unsplash.com/photo-1559912963-e6fed5219d00?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8MTh8fGJyZWV6ZSUyMGJsb2NrJTIwd2FsbHxlbnwxfDF8fHwxNzk1NjIxNzMyfDA&ixlib=rb-4.1.0",
+   "rotulo": "Design",
+   "titulo": "Cobogó, o vazado<br>brasileiro",
+   "marca": false
+  },
+  {
+   "t": "texto",
+   "rotulo": "Design",
+   "titulo": "Nascido no Recife, em 1929",
+   "texto": "O nome junta as primeiras sílabas dos três criadores: Coimbra, Boeckmann e Góis. Uma parede que ventila, filtra o sol e guarda a privacidade."
+  },
+  {
+   "t": "foto",
+   "foto": "https://images.unsplash.com/photo-1573510675363-a8dd93d6ab5d?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8MXx8YnJlZXplJTIwYmxvY2slMjB3YWxsfGVufDF8MXx8fDE3OTU2MjE3MzJ8MA&ixlib=rb-4.1.0",
+   "credito": "Foto: Zachary Keimig / Unsplash",
+   "legenda": "Cheios e vazios que desenham a parede."
+  },
+  {
+   "t": "lista",
+   "rotulo": "Design",
+   "titulo": "Por que ele voltou",
+   "itens": [
+    ["Ventilação.", "O ar circula e a casa fica mais fresca."],
+    ["Luz filtrada.", "O sol entra em desenhos que mudam ao longo do dia."],
+    ["Privacidade.", "Separa sem fechar, por dentro ou na fachada."],
+    ["Materiais.", "Do cimento das origens à cerâmica e ao concreto."]
+   ]
+  },
+  {
+   "t": "foto",
+   "foto": "https://images.unsplash.com/photo-1621871305482-f6ebb7238916?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8MXx8Y29ib2dvfGVufDF8MXx8fDE3OTU2MjE3MzJ8MA&ixlib=rb-4.1.0",
+   "credito": "Foto: Geraldine Lewa / Unsplash",
+   "legenda": "Por dentro, a luz vira desenho."
+  },
+  {
+   "t": "texto",
+   "rotulo": "Na história",
+   "titulo": "Do modernismo para hoje",
+   "texto": "Lúcio Costa, Oscar Niemeyer e Affonso Eduardo Reidy usaram soluções vazadas em seus projetos. O MAM Rio tem uma parede de cobogós de 1958.",
+   "escuro": true
+  },
+  {
+   "t": "foto",
+   "foto": "https://images.unsplash.com/photo-1576553124987-23a6348c0e89?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8Nnx8YnJlZXplJTIwYmxvY2slMjB3YWxsfGVufDF8MXx8fDE3OTU2MjE3MzJ8MA&ixlib=rb-4.1.0",
+   "credito": "Foto: Mitchell Luo / Unsplash",
+   "legenda": "Em cor, ele ganha outra personalidade."
+  },
+  {"t": "fim"}
+ ],
+ "unsplash": ["tCURtKU3aT4", "TU9eEBSrBZg", "D8KM6mUP5bI", "ZFf55vazo6s"]
+}
