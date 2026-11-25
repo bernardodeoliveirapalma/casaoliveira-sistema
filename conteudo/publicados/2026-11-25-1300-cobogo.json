@@ -27,10 +27,22 @@
    "rotulo": "Design",
    "titulo": "Por que ele voltou",
    "itens": [
-    ["Ventilação.", "O ar circula e a casa fica mais fresca."],
-    ["Luz filtrada.", "O sol entra em desenhos que mudam ao longo do dia."],
-    ["Privacidade.", "Separa sem fechar, por dentro ou na fachada."],
-    ["Materiais.", "Do cimento das origens à cerâmica e ao concreto."]
+    [
+     "Ventilação.",
+     "O ar circula e a casa fica mais fresca."
+    ],
+    [
+     "Luz filtrada.",
+     "O sol entra em desenhos que mudam ao longo do dia."
+    ],
+    [
+     "Privacidade.",
+     "Separa sem fechar, por dentro ou na fachada."
+    ],
+    [
+     "Materiais.",
+     "Do cimento das origens à cerâmica e ao concreto."
+    ]
    ]
   },
   {
@@ -52,7 +64,19 @@
    "credito": "Foto: Mitchell Luo / Unsplash",
    "legenda": "Em cor, ele ganha outra personalidade."
   },
-  {"t": "fim"}
+  {
+   "t": "fim"
+  }
  ],
- "unsplash": ["tCURtKU3aT4", "TU9eEBSrBZg", "D8KM6mUP5bI", "ZFf55vazo6s"]
+ "unsplash": [
+  "tCURtKU3aT4",
+  "TU9eEBSrBZg",
+  "D8KM6mUP5bI",
+  "ZFf55vazo6s"
+ ],
+ "publicado": {
+  "em": "2026-11-25T15:52:09.985Z",
+  "link": "https://www.instagram.com/p/DgK5PZfj46U/",
+  "media_id": "18227231254343759"
+ }
 }
