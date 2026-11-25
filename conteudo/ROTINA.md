@@ -68,6 +68,10 @@ Se a função de vídeos responder que falta a chave (`PIXABAY_KEY`), faça o ca
  "pixabay": [123456]
 }
 ```
+- Música: escolha em `"roteiro"` o campo `"musica"` com o clima do vídeo (lista em `conteudo/musica/musicas.json`:
+  bossa-antigua, gymnopedie-no-1, dreamer, inspired, wallpaper, lobby-time). Alterne: não repita a do reel anterior.
+  Só essas trilhas livres (CC BY 4.0). Nunca música famosa: o Instagram tira o som ou bloqueia o reel.
+  O robô põe sozinho o crédito da música na legenda.
 - Destaque: coloque entre *asteriscos* as 2 a 4 palavras mais fortes de cada frase (viram itálico).
   Frases em português impecável, com ponto final ou interrogação. Nunca travessão.
 - Conferir: `node conteudo/reel.js conteudo/fila/<arquivo>.json /tmp/previa-reel`, tire quadros

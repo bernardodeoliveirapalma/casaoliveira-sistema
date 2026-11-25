@@ -56,6 +56,7 @@ const resumo = (s) => { console.log(s); if (process.env.GITHUB_STEP_SUMMARY) fs.
     const post = JSON.parse(fs.readFileSync(arq, 'utf8'));
     if (post.quando && new Date(post.quando).getTime() > agora) { resumo(`- ${post.titulo}: agendado para ${post.quando}`); continue; }
     try {
+      post.legenda = require('./reel').legendaComMusica(post);
       let arquivos, campos = { acao: 'preparar', tipo: post.tipo, legenda: post.legenda };
       if (post.tipo === 'reel' && post.roteiro) {
         const feito = await require('./reel').reel(arq, path.join('/tmp/reels', nome.replace('.json', '')));

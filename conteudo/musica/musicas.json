@@ -1,0 +1,9 @@
+{
+ "_sobre": "Trilhas de Kevin MacLeod (incompetech.com), licença Creative Commons BY 4.0: pode usar em reels desde que o crédito vá na legenda. Primeiros 75s de cada faixa.",
+ "bossa-antigua":   { "nome": "Bossa Antigua",   "clima": "bossa nova, leve, praia e Brasil", "inicio": 0 },
+ "gymnopedie-no-1": { "nome": "Gymnopedie No 1", "clima": "piano calmo, interiores e casas de campo", "inicio": 0 },
+ "dreamer":         { "nome": "Dreamer",         "clima": "sonhador, arquitetura e pôr do sol", "inicio": 0 },
+ "inspired":        { "nome": "Inspired",        "clima": "inspirador, mercado e cidades", "inicio": 0 },
+ "wallpaper":       { "nome": "Wallpaper",       "clima": "moderno e animado, lançamentos e design", "inicio": 0 },
+ "lobby-time":      { "nome": "Lobby Time",      "clima": "jazz suave, hotéis e alto padrão", "inicio": 2 }
+}

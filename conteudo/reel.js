@@ -12,7 +12,9 @@
 //    "video": "<link do arquivo do Pixabay>",
 //    "inicio": 0,                      (segundo do vídeo onde começa)
 //    "credito": "Vídeo: Nome / Pixabay",
-//    "cenas": [ { "texto": "Por que as casas são *tão coloridas*?", "seg": 3.5 }, ... ]
+//    "cenas": [ { "texto": "Por que as casas são *tão coloridas*?", "seg": 3.5 }, ... ],
+//    "musica": "bossa-antigua"          (opcional; ver conteudo/musica/musicas.json;
+//                                        "nenhuma" = sem som; vazio = escolhe pelo título)
 //  }
 // Entre *asteriscos* = destaque em itálico. Cada frase entra deslizando.
 // Depois da última frase vem a lâmina final (2,5s).
@@ -100,6 +102,30 @@ async function png(page, css, html, arq) {
   fs.unlinkSync(f);
 }
 
+// Trilha do reel (livre, CC BY 4.0). O crédito precisa ir na legenda: creditoMusica().
+const MUS = path.join(__dirname, 'musica');
+function musicaDo(post) {
+  const lista = JSON.parse(fs.readFileSync(path.join(MUS, 'musicas.json'), 'utf8'));
+  const ids = Object.keys(lista).filter((k) => !k.startsWith('_'));
+  let id = (post.roteiro || {}).musica;
+  if (id === 'nenhuma') return null;
+  if (!id || !lista[id]) {
+    let h = 0; for (const ch of post.titulo || '') h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+    id = ids[h % ids.length];
+  }
+  return { id, ...lista[id], arquivo: path.join(MUS, id + '.mp3') };
+}
+const creditoMusica = (m) => `Música: "${m.nome}", Kevin MacLeod (incompetech.com), CC BY 4.0`;
+// Coloca o crédito da música na legenda (antes das hashtags), se ainda não estiver.
+function legendaComMusica(post) {
+  const m = post.tipo === 'reel' && post.roteiro ? musicaDo(post) : null;
+  if (!m || (post.legenda || '').includes('Kevin MacLeod')) return post.legenda;
+  const partes = post.legenda.split('\n\n');
+  const i = partes.length > 1 && partes[partes.length - 1].trim().startsWith('#') ? partes.length - 1 : partes.length;
+  partes.splice(i, 0, creditoMusica(m));
+  return partes.join('\n\n');
+}
+
 async function reel(arq, saida) {
   const post = JSON.parse(fs.readFileSync(arq, 'utf8'));
   const r = post.roteiro;
@@ -138,7 +164,9 @@ async function reel(arq, saida) {
   const img = (f) => ['-loop', '1', '-t', String(total), '-framerate', '30', '-i', f];
   const ins = ['-ss', String(r.inicio || 0), '-stream_loop', '-1', '-i', bruto, ...img(moldura)];
   for (const c of camadas) ins.push(...img(c));
-  ins.push(...img(fim), '-f', 'lavfi', '-t', String(total), '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100');
+  const m = musicaDo(post);
+  if (m) ins.push(...img(fim), '-ss', String(m.inicio || 0), '-t', String(total), '-i', m.arquivo);
+  else ins.push(...img(fim), '-f', 'lavfi', '-t', String(total), '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100');
 
   // Leve zoom lento no vídeo (efeito "Ken Burns") para dar vida
   const zoom = `scale=iw*1.06:ih*1.06,crop=iw/1.06:ih/1.06:(iw-iw/1.06)/2*(1-t/${total}):(ih-ih/1.06)/2`;
@@ -162,10 +190,13 @@ async function reel(arq, saida) {
   });
   const nf = camadas.length + 2;
   fc += `;[${nf}:v]format=rgba,fade=t=in:st=${t}:d=0.5:alpha=1[of];[${ult}][of]overlay=0:0:enable='gte(t,${t})'[vf]`;
+  // Som: volume padronizado, entra em 0,6s e sai suave no final
+  fc += m ? `;[${nf + 1}:a]loudnorm=I=-16:TP=-1.5:LRA=11,afade=t=in:d=0.6,afade=t=out:st=${Math.max(0, total - 1.8)}:d=1.8,aresample=44100,apad,atrim=duration=${total}[af]`
+    : `;[${nf + 1}:a]anull[af]`;
   const mp4 = path.join(saida, 'reel.mp4');
-  execFileSync('ffmpeg', ['-y', '-loglevel', 'error', ...ins, '-filter_complex', fc, '-map', '[vf]', '-map', `${nf + 1}:a`,
+  execFileSync('ffmpeg', ['-y', '-loglevel', 'error', ...ins, '-filter_complex', fc, '-map', '[vf]', '-map', '[af]',
     '-t', String(total), '-c:v', 'libx264', '-preset', 'medium', '-crf', '20', '-maxrate', '8M', '-bufsize', '16M',
-    '-pix_fmt', 'yuv420p', '-profile:v', 'high', '-c:a', 'aac', '-b:a', '128k', '-movflags', '+faststart', mp4]);
+    '-pix_fmt', 'yuv420p', '-profile:v', 'high', '-c:a', 'aac', '-b:a', '160k', '-movflags', '+faststart', mp4]);
 
   // 4. Capa: quadro com a primeira frase já parada
   const capa = path.join(saida, 'capa.jpg');
@@ -178,4 +209,4 @@ async function reel(arq, saida) {
 if (require.main === module) {
   reel(process.argv[2], process.argv[3] || 'saida-reel').then((x) => console.log(x.video + '\n' + x.capa)).catch((e) => { console.error(e); process.exit(1); });
 }
-module.exports = { reel };
+module.exports = { reel, musicaDo, creditoMusica, legendaComMusica };
