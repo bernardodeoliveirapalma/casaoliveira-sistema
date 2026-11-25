@@ -7,11 +7,31 @@
   "inicio": 0,
   "credito": "Vídeo: AttilaPergel / Pixabay",
   "cenas": [
-   {"texto": "Por que as casas de Portofino são tão coloridas?", "seg": 3.5},
-   {"rotulo": "Itália", "texto": "Conta a tradição: para os pescadores verem a própria casa lá do mar", "seg": 4},
-   {"texto": "Hoje, a vila é um dos cenários mais fotografados da Riviera", "seg": 3.5},
-   {"texto": "Salve para a sua lista de lugares dos sonhos", "seg": 3}
+   {
+    "texto": "Por que as casas de Portofino são tão coloridas?",
+    "seg": 3.5
+   },
+   {
+    "rotulo": "Itália",
+    "texto": "Conta a tradição: para os pescadores verem a própria casa lá do mar",
+    "seg": 4
+   },
+   {
+    "texto": "Hoje, a vila é um dos cenários mais fotografados da Riviera",
+    "seg": 3.5
+   },
+   {
+    "texto": "Salve para a sua lista de lugares dos sonhos",
+    "seg": 3
+   }
   ]
  },
- "pixabay": [221342]
+ "pixabay": [
+  221342
+ ],
+ "publicado": {
+  "em": "2026-11-25T17:24:57.077Z",
+  "link": "https://www.instagram.com/reel/DgLD0kzuZds/",
+  "media_id": "17929079469200914"
+ }
 }
