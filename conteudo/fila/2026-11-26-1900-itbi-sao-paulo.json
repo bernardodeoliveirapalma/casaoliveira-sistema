@@ -1,0 +1,76 @@
+{
+ "titulo": "ITBI: R$ 30 mil num imóvel de R$ 1 milhão",
+ "tipo": "carrossel",
+ "legenda": "Comprou um imóvel de R$ 1 milhão em São Paulo? Separe R$ 30 mil só de ITBI.\nÉ o imposto municipal pago quando o imóvel muda de dono. Na capital paulista, a alíquota é de 3% sobre o maior valor entre o preço pago e o valor venal de referência. Em geral quem paga é o comprador, antes da escritura. Quem financia pelo SFH um imóvel de até R$ 725.808 paga 0,5% sobre a parte financiada, até R$ 120.968.\n\nVocê já tinha colocado o ITBI na conta? Salve para consultar depois e mande para quem está procurando imóvel.\n\nIn São Paulo, the property transfer tax (ITBI) is 3%: R$ 30,000 on a R$ 1 million home.\n\nFonte: Prefeitura de São Paulo, Secretaria da Fazenda, 26/11. Exame, guia do ITBI.\nFotos: Caroline Badran, Filipe Freitas / Unsplash. Imagens ilustrativas.\n\n#imobiliariobrasil #itbi #comprarimovel #financiamentoimobiliario #mercadoimobiliario",
+ "laminas": [
+  {
+   "t": "capa",
+   "foto": "https://images.unsplash.com/photo-1764444218574-d7458950bf4c?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8Mnx8c2FvJTIwcGF1bG8lMjBza3lsaW5lfGVufDF8MXx8fDE3OTU3Mjk3ODV8MA&ixlib=rb-4.1.0",
+   "rotulo": "Guia",
+   "titulo": "R$ 1 milhão em SP:<br>R$ 30 mil de imposto",
+   "marca": false
+  },
+  {
+   "t": "numero",
+   "rotulo": "Guia",
+   "n": "R$ 30 mil",
+   "titulo": "de ITBI num imóvel<br>de R$ 1 milhão",
+   "texto": "Na cidade de São Paulo, a alíquota é de 3%. Em geral quem paga é o comprador, antes da escritura. É dinheiro que não entra no financiamento comum."
+  },
+  {
+   "t": "glossario",
+   "termo": "ITBI",
+   "texto": "Imposto sobre a Transmissão de Bens Imóveis. É municipal e cobrado quando um imóvel muda de dono por compra e venda."
+  },
+  {
+   "t": "foto",
+   "foto": "https://images.unsplash.com/photo-1772475385327-ae6212f900aa?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8MTF8fG1vZGVybiUyMGFwYXJ0bWVudCUyMGxpdmluZyUyMHJvb20lMjB3aW5kb3d8ZW58MXwxfHx8MTc5NTcyOTc4Nnww&ixlib=rb-4.1.0",
+   "credito": "Foto: Caroline Badran / Unsplash",
+   "legenda": "O imposto entra na conta tanto quanto o preço."
+  },
+  {
+   "t": "lista",
+   "rotulo": "Guia",
+   "titulo": "Como São Paulo calcula",
+   "itens": [
+    [
+     "A base.",
+     "Vale o maior valor entre o preço pago e o valor venal de referência."
+    ],
+    [
+     "A alíquota.",
+     "3% sobre toda a base na maioria das compras."
+    ],
+    [
+     "Quem paga.",
+     "Em geral, o comprador. O contrato pode combinar outra divisão."
+    ],
+    [
+     "Pelo SFH.",
+     "Imóvel de até R$ 725.808: 0,5% sobre o financiado, até R$ 120.968."
+    ]
+   ]
+  },
+  {
+   "t": "numero",
+   "rotulo": "Para mandar a alguém",
+   "n": "R$ 3 mil",
+   "titulo": "a menos para quem financia pelo SFH",
+   "texto": "Imóvel de R$ 500 mil com R$ 400 mil financiados: o ITBI cai de R$ 15 mil para cerca de R$ 12 mil. Cada cidade tem sua regra."
+  },
+  {
+   "t": "foto",
+   "foto": "https://images.unsplash.com/photo-1683684931126-50e9afd0e63f?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8MXx8c2FvJTIwcGF1bG8lMjBza3lsaW5lfGVufDF8MXx8fDE3OTU3Mjk3ODV8MA&ixlib=rb-4.1.0",
+   "credito": "Foto: Filipe Freitas / Unsplash",
+   "legenda": "Fonte: Prefeitura de São Paulo, Secretaria da Fazenda."
+  },
+  {
+   "t": "fim"
+  }
+ ],
+ "unsplash": [
+  "uKj1kHUb1Gc",
+  "otLG89ShC4M",
+  "rm9uMJP8o18"
+ ]
+}
