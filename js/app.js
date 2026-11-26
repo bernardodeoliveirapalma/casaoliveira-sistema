@@ -1478,7 +1478,7 @@ function telaAniversario(id) {
    "etiqueta": se existir alguém com ela, a janela já abre filtrada nela e com este texto. */
 var SEQ_MODELOS = [
   { nome: 'Material do evento', marca: '', texto: 'Olá, {nome}. Aqui é a família Casa Oliveira.\n\nFoi muito bom ter você com a gente. Como combinado, separamos o material para você:\n{material}\n\nQualquer dúvida, é só responder por aqui.' },
-  { nome: 'Primeiro contato Porsche', marca: 'Primeiro contato Porsche', etiqueta: 'Porsche lote 1',
+  { nome: 'Primeiro contato Porsche', marca: 'Primeiro contato Porsche', etiqueta: 'Porsche lote 2',
     texto: 'Olá, {nome}. Aqui é o Bernardo, da Casa Oliveira. Nos conhecemos dos encontros da Porsche da Encontros Motor, que organizo junto com o Pedro.\n\n' +
       'Este é o WhatsApp da Casa Oliveira, a curadoria imobiliária de alto padrão que conduzo com a minha mãe, Ane, em Florianópolis. Nascemos para ser a casa de confiança que nossos clientes procuram quando precisam tomar uma grande decisão imobiliária, da compra e da venda à decoração e à construção de um imóvel.\n\n' +
       'Há pouco fizemos um encontro de supercarros na Serra Catarinense. Está no topo da nossa página, fixado no meio: https://www.instagram.com/casaoliveiracuradoria/\n\n' +
