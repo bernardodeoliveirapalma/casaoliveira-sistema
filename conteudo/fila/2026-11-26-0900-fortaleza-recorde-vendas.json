@@ -1,0 +1,71 @@
+{
+ "titulo": "Fortaleza bate recorde: R$ 1,55 bi em outubro",
+ "tipo": "carrossel",
+ "legenda": "Fortaleza vendeu R$ 1,55 bilhão em imóveis novos em um só mês.\nFoi em outubro de 2026, o melhor mês desde 2009, quando a série começou. Foram 2.188 unidades na Grande Fortaleza, mais que o dobro de um ano antes. No índice FipeZap, o m² da capital subiu 10,45% em 12 meses.\n\nVocê investiria em Fortaleza? Salve para consultar depois e mande para quem está procurando imóvel.\n\nGreater Fortaleza sold R$ 1.55 billion in new homes in October 2026, its best month on record.\n\nFonte: Sinduscon-CE e Brain, via O Povo, 25/11. FipeZap, informe de outubro de 2026.\nFotos: Alexandre Barbosa, Matt W Newman / Unsplash. Imagens ilustrativas.\n\n#imobiliariobrasil #mercadoimobiliario #fortaleza #imoveisnovos #investimentoimobiliario",
+ "laminas": [
+  {
+   "t": "capa",
+   "foto": "https://images.unsplash.com/photo-1615657804432-5ee3750d2dec?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8MTF8fGZvcnRhbGV6YSUyMGJyYXppbHxlbnwxfDF8fHwxNzk1NjkzODE3fDA&ixlib=rb-4.1.0",
+   "rotulo": "Mercado",
+   "titulo": "Fortaleza bate recorde:<br>R$ 1,55 bi em outubro",
+   "marca": false
+  },
+  {
+   "t": "numero",
+   "rotulo": "Mercado",
+   "n": "R$ 1,55 bi",
+   "titulo": "em imóveis novos em outubro",
+   "texto": "É o maior valor vendido em um único mês na Grande Fortaleza desde 2009, quando a série começou. Foram 2.188 unidades, mais que o dobro de outubro de 2025."
+  },
+  {
+   "t": "foto",
+   "foto": "https://images.unsplash.com/photo-1560971923-16c232d1ee89?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8MXx8Zm9ydGFsZXphJTIwYnJhemlsfGVufDF8MXx8fDE3OTU2OTM4MTd8MA&ixlib=rb-4.1.0",
+   "credito": "Foto: Matt W Newman / Unsplash",
+   "legenda": "O resultado veio mesmo com os juros altos."
+  },
+  {
+   "t": "lista",
+   "rotulo": "Mercado",
+   "titulo": "O ano em quatro pontos",
+   "itens": [
+    [
+     "Até outubro.",
+     "R$ 8,6 bilhões vendidos, 26% a mais que em 2025."
+    ],
+    [
+     "Minha Casa, Minha Vida.",
+     "O segmento econômico liderou os lançamentos na capital."
+    ],
+    [
+     "Juros altos.",
+     "Mesmo assim, o resultado surpreendeu o próprio setor."
+    ],
+    [
+     "A meta.",
+     "Passar de R$ 10 bilhões vendidos em 2026."
+    ]
+   ]
+  },
+  {
+   "t": "numero",
+   "rotulo": "Para mandar a alguém",
+   "n": "+10,45%",
+   "titulo": "o m² de Fortaleza em 12 meses",
+   "texto": "No índice FipeZap de outubro, o preço do m² na capital subiu quase o dobro da média nacional, de 5,44%. O m² médio é de R$ 9.767."
+  },
+  {
+   "t": "foto",
+   "foto": "https://images.unsplash.com/photo-1593463419694-5a70c1bfb421?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8NHx8Zm9ydGFsZXphJTIwYnJhemlsfGVufDF8MXx8fDE3OTU2OTM4MTd8MA&ixlib=rb-4.1.0",
+   "credito": "Foto: Alexandre Barbosa / Unsplash",
+   "legenda": "Fontes: Sinduscon-CE e FipeZap."
+  },
+  {
+   "t": "fim"
+  }
+ ],
+ "unsplash": [
+  "lWMkpyKglbs",
+  "CgfYkSZCjGQ",
+  "Y2vNANFkXtM"
+ ]
+}
