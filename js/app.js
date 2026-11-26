@@ -1466,10 +1466,21 @@ function telaAniversario(id) {
 }
 
 /* ---------- envio em sequência (pelo WhatsApp de sempre, sem custo) ---------- */
+/* textos prontos. "marca" é a etiqueta que a pessoa ganha quando a mensagem é aberta no WhatsApp.
+   "etiqueta": se existir alguém com ela, a janela já abre filtrada nela e com este texto. */
+var SEQ_MODELOS = [
+  { nome: 'Material do evento', marca: '', texto: 'Olá, {nome}. Aqui é a família Casa Oliveira.\n\nFoi muito bom ter você com a gente. Como combinado, separamos o material para você:\n{material}\n\nQualquer dúvida, é só responder por aqui.' },
+  { nome: 'Primeiro contato Porsche', marca: 'Primeiro contato Porsche', etiqueta: 'Porsche lote 1',
+    texto: 'Olá, {nome}. Aqui é o Bernardo, da Casa Oliveira. Nos conhecemos no encontro da Porsche da Encontros Motor, que organizo junto com o Pedro.\n\n' +
+      'Este é o WhatsApp da Casa Oliveira, a curadoria imobiliária de alto padrão que conduzo com a minha mãe, Ane, em Florianópolis. Nascemos para ser a casa de confiança que nossos clientes procuram quando precisam tomar uma grande decisão: comprar, vender ou construir.\n\n' +
+      'Há pouco fizemos um encontro de supercarros na Serra Catarinense. Está no topo da nossa página, fixado no meio: https://www.instagram.com/casaoliveiracuradoria/\n\n' +
+      'Que essa conexão dê bons frutos. Espero te ver nos próximos encontros.\nUm grande abraço,\nBernardo' }
+];
 function janelaSequencia() {
-  var est = { etiqueta: '', busca: '', sel: {}, imovel: '', passo: 1, fila: [], i: 0 };
+  var est = { etiqueta: '', busca: '', sel: {}, imovel: '', passo: 1, fila: [], i: 0, marca: '' };
   var tags = todasEtiquetas();
-  var TXT = 'Olá, {nome}. Aqui é a família Casa Oliveira.\n\nFoi muito bom ter você com a gente. Como combinado, separamos o material para você:\n{material}\n\nQualquer dúvida, é só responder por aqui.';
+  var TXT = SEQ_MODELOS[0].texto;
+  SEQ_MODELOS.forEach(function (m) { if (!est.etiqueta && m.etiqueta && tags.indexOf(m.etiqueta) >= 0) { est.etiqueta = m.etiqueta; est.texto = m.texto; est.marca = m.marca; } });
   abrirJanela('<div id="seq"></div>', function (j) {
     var box = $('#seq', j);
     function lista() {
@@ -1509,15 +1520,21 @@ function janelaSequencia() {
       est.texto = est.texto || TXT;
       var ps = escolhidos();
       box.innerHTML = '<span class="rotulo">Enviar em sequência · 2 de 2</span><h2>A mensagem</h2>' +
+        '<div class="passo"><span class="rotulo">Começar de</span><div class="tags">' + SEQ_MODELOS.map(function (m, i) {
+          return '<button type="button" class="chip' + (est.texto === m.texto ? ' ativo' : '') + '" data-sm="' + i + '">' + esc(m.nome) + '</button>'; }).join('') + '</div></div>' +
         '<div class="passo"><span class="rotulo">Material (opcional)</span><select class="entrada" id="s-imovel"><option value="">Sem material</option>' +
           Dados.imoveis().map(function (im) { return '<option value="' + esc(im.id) + '"' + (im.id === est.imovel ? ' selected' : '') + '>' + esc(im.nome) + '</option>'; }).join('') + '</select></div>' +
         '<div class="passo"><span class="rotulo">Texto</span><textarea class="entrada" id="s-texto" rows="7">' + esc(est.texto) + '</textarea>' +
           '<small class="suave">{nome} vira o primeiro nome. {material} vira o link da apresentação do imóvel.</small></div>' +
+        '<div class="passo"><span class="rotulo">Etiqueta para quem receber (opcional)</span><input class="entrada" id="s-marca" placeholder="Ex.: Primeiro contato Porsche" value="' + esc(est.marca) + '">' +
+          '<small class="suave">Assim vocês sabem depois quem já recebeu esta mensagem.</small></div>' +
         '<div class="passo"><span class="rotulo">Como fica para ' + esc(primeiroNome(ps[0].nome)) + '</span><div class="previa" id="s-previa"></div></div>' +
         '<div class="fim"><button class="btn btn-linha" type="button" id="s-voltar">Voltar</button><button class="btn btn-wa" type="button" id="s-comecar">' + I.wa + 'Começar a enviar</button></div>';
       function previa() { $('#s-previa', box).textContent = montar(ps[0]); }
       $('#s-imovel', box).addEventListener('change', function (e) { est.imovel = e.target.value; previa(); });
       $('#s-texto', box).addEventListener('input', function (e) { est.texto = e.target.value; previa(); });
+      $('#s-marca', box).addEventListener('input', function (e) { est.marca = e.target.value.trim(); });
+      $$('[data-sm]', box).forEach(function (b) { b.addEventListener('click', function () { var m = SEQ_MODELOS[+b.dataset.sm]; est.texto = m.texto; est.marca = m.marca; passo2(); }); });
       previa();
       $('#s-voltar', box).addEventListener('click', passo1);
       $('#s-comecar', box).addEventListener('click', function () { est.fila = ps; est.i = 0; passo3(); });
@@ -1540,6 +1557,10 @@ function janelaSequencia() {
       $('#s-pular', box).addEventListener('click', function () { est.i++; passo3(); });
       $('#s-abrir', box).addEventListener('click', function () {
         Dados.anotar(c.id, 'Mensagem enviada em sequência' + (est.imovel ? ' com o material de ' + (Dados.imovel(est.imovel) || {}).nome : '') + '.').catch(function () {});
+        if (est.marca && (c.etiquetas || []).indexOf(est.marca) < 0) {
+          var copia = JSON.parse(JSON.stringify(c)); copia.etiquetas = (copia.etiquetas || []).concat(est.marca);
+          Dados.salvarCliente(copia).catch(function () {});
+        }
         setTimeout(function () { est.i++; passo3(); }, 400);
       });
     }
