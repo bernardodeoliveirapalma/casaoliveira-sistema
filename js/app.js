@@ -487,6 +487,14 @@ function linkWa(c, texto) {
   var num = soNumeros(c.whatsapp); if (num && num.length <= 11) num = '55' + num;
   return 'https://wa.me/' + num + '?text=' + encodeURIComponent(texto || msgOla(c));
 }
+/* No computador, abre direto o WhatsApp Web (onde está o número da Casa), sempre na mesma aba,
+   em vez do app instalado, que pode ser o WhatsApp pessoal. No celular segue o wa.me. */
+var NO_COMPUTADOR = !/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+function linkWaWeb(c, texto) {
+  if (!NO_COMPUTADOR) return linkWa(c, texto);
+  var num = soNumeros(c.whatsapp); if (num && num.length <= 11) num = '55' + num;
+  return 'https://web.whatsapp.com/send?phone=' + num + '&text=' + encodeURIComponent(texto || msgOla(c));
+}
 /* ---------- aniversários (guardados como MM-DD, sem o ano) ---------- */
 var MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
 var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -1552,8 +1560,8 @@ function janelaSequencia() {
         '<div class="ficha-cli" style="box-shadow:none;padding:0;margin:0 0 14px">' + avatarDe(c.nome) + '<div><h2>' + esc(c.nome) + '</h2><span class="suave">' + esc(telBonito(c.whatsapp)) + '</span></div></div>' +
         '<div class="previa">' + esc(msg) + '</div>' +
         '<div class="fim"><button class="btn btn-linha" type="button" id="s-pular">Pular</button>' +
-          '<a class="btn btn-wa" id="s-abrir" target="_blank" rel="noopener" href="' + esc(linkWa(c, msg)) + '">' + I.wa + 'Abrir WhatsApp de ' + esc(primeiroNome(c.nome)) + '</a></div>' +
-        '<p class="suave" style="font-size:13px;margin-top:12px;text-align:center">Aperte enviar no WhatsApp e volte aqui. A próxima pessoa já estará pronta.</p>';
+          '<a class="btn btn-wa" id="s-abrir" target="' + (NO_COMPUTADOR ? 'co-whatsapp' : '_blank') + '" rel="noopener" href="' + esc(linkWaWeb(c, msg)) + '">' + I.wa + 'Abrir WhatsApp de ' + esc(primeiroNome(c.nome)) + '</a></div>' +
+        '<p class="suave" style="font-size:13px;margin-top:12px;text-align:center">' + (NO_COMPUTADOR ? 'Abre no WhatsApp Web, sempre na mesma aba. Deixe o WhatsApp Web conectado no número da Casa Oliveira. ' : '') + 'Aperte enviar no WhatsApp e volte aqui. A próxima pessoa já estará pronta.</p>';
       $('#s-pular', box).addEventListener('click', function () { est.i++; passo3(); });
       $('#s-abrir', box).addEventListener('click', function () {
         Dados.anotar(c.id, 'Mensagem enviada em sequência' + (est.imovel ? ' com o material de ' + (Dados.imovel(est.imovel) || {}).nome : '') + '.').catch(function () {});
