@@ -1,0 +1,63 @@
+{
+ "titulo": "Quanto rende um imóvel alugado em 2026",
+ "tipo": "carrossel",
+ "legenda": "Um imóvel alugado rende, em média, 6,13% ao ano no Brasil.\nÉ a rentabilidade bruta do aluguel em outubro, segundo o índice FipeZAP. Num imóvel de R$ 500 mil, dá cerca de R$ 2.550 por mês, antes de custos e impostos. Recife lidera entre as capitais, com 8,24% ao ano. A conta não inclui a valorização do imóvel, que soma ao retorno de quem investe.\n\nVocê prefere imóvel ou renda fixa? Salve para consultar depois e mande para quem está pensando em investir em imóvel.\n\nIn October 2026, residential rents in Brazil yielded 6.13% a year on average, before costs and taxes.\n\nFonte: Índice FipeZAP de Locação Residencial (Fipe e Grupo OLX), outubro de 2026, via Folhapress, 17/11. Selic: Banco Central, Copom de 4/11.\nFotos: Amir Hosseini, Puscas Adryan, Doug Bagg / Unsplash. Imagens ilustrativas.\n\n#imobiliariobrasil #investimentoimobiliario #aluguel #fipezap #rendapassiva",
+ "laminas": [
+  {
+   "t": "capa",
+   "foto": "https://images.unsplash.com/photo-1614115863913-b04024ec4ed1?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8MTJ8fG1vZGVybiUyMGFwYXJ0bWVudCUyMGJ1aWxkaW5nJTIwZmFjYWRlfGVufDF8MXx8fDE3OTU4MTYxNzB8MA&ixlib=rb-4.1.0",
+   "rotulo": "Investimento",
+   "titulo": "Quanto rende<br>um imóvel alugado?",
+   "marca": false
+  },
+  {
+   "t": "numero",
+   "rotulo": "Investimento",
+   "n": "6,13%",
+   "titulo": "ao ano, em média,<br>no Brasil",
+   "texto": "É a rentabilidade bruta do aluguel em outubro, segundo o índice FipeZAP. Num imóvel de R$ 500 mil, dá cerca de R$ 2.550 por mês, antes de custos e impostos."
+  },
+  {
+   "t": "lista",
+   "rotulo": "Ranking",
+   "titulo": "Onde o aluguel rende mais",
+   "itens": [
+    ["Recife.", "8,24% ao ano."],
+    ["Belém.", "8,20% ao ano."],
+    ["Cuiabá.", "8,04% ao ano."],
+    ["Natal.", "8,02% ao ano."]
+   ]
+  },
+  {
+   "t": "foto",
+   "foto": "https://images.unsplash.com/photo-1772797583328-f83bc3f94f80?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8MXx8c21hbGwlMjBhcGFydG1lbnQlMjBpbnRlcmlvciUyMGxpdmluZyUyMHJvb218ZW58MXwxfHx8MTc5NTgxNjE3MXww&ixlib=rb-4.1.0",
+   "credito": "Foto: Puscas Adryan / Unsplash",
+   "legenda": "Em São Paulo, o retorno médio é de 6,44% ao ano."
+  },
+  {
+   "t": "lista",
+   "rotulo": "Guia",
+   "titulo": "Antes de comparar com a renda fixa",
+   "itens": [
+    ["É bruto.", "Não desconta condomínio, IPTU, meses vagos, manutenção e imposto de renda."],
+    ["Falta a valorização.", "O índice mede só o aluguel. O preço do imóvel também pode subir."],
+    ["A Selic está em 13,75%.", "Taxa básica de juros mantida pelo Banco Central em 4 de novembro."]
+   ]
+  },
+  {
+   "t": "foto",
+   "foto": "https://images.unsplash.com/photo-1592276040264-e10344a6a10e?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8Nnx8bW9kZXJuJTIwYXBhcnRtZW50JTIwYnVpbGRpbmclMjBmYWNhZGV8ZW58MXwxfHx8MTc5NTgxNjE3MHww&ixlib=rb-4.1.0",
+   "credito": "Foto: Doug Bagg / Unsplash",
+   "legenda": "O aluguel subiu 9,01% em 12 meses, quase o dobro da inflação."
+  },
+  {
+   "t": "numero",
+   "rotulo": "Para mandar a alguém",
+   "n": "6,71%",
+   "titulo": "ao ano nos apartamentos<br>de 1 quarto",
+   "texto": "Os compactos rendem mais que a média. O m² do aluguel de 1 quarto sai a R$ 72,76, contra R$ 47,52 nos de 3 quartos."
+  },
+  { "t": "fim" }
+ ],
+ "unsplash": ["CtA-GClVlS0", "2cfj0Y5ch00", "HDxvXqUJ3BQ"]
+}
