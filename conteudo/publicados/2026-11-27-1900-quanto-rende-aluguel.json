@@ -22,10 +22,22 @@
    "rotulo": "Ranking",
    "titulo": "Onde o aluguel rende mais",
    "itens": [
-    ["Recife.", "8,24% ao ano."],
-    ["Belém.", "8,20% ao ano."],
-    ["Cuiabá.", "8,04% ao ano."],
-    ["Natal.", "8,02% ao ano."]
+    [
+     "Recife.",
+     "8,24% ao ano."
+    ],
+    [
+     "Belém.",
+     "8,20% ao ano."
+    ],
+    [
+     "Cuiabá.",
+     "8,04% ao ano."
+    ],
+    [
+     "Natal.",
+     "8,02% ao ano."
+    ]
    ]
   },
   {
@@ -39,9 +51,18 @@
    "rotulo": "Guia",
    "titulo": "Antes de comparar com a renda fixa",
    "itens": [
-    ["É bruto.", "Não desconta condomínio, IPTU, meses vagos, manutenção e imposto de renda."],
-    ["Falta a valorização.", "O índice mede só o aluguel. O preço do imóvel também pode subir."],
-    ["A Selic está em 13,75%.", "Taxa básica de juros mantida pelo Banco Central em 4 de novembro."]
+    [
+     "É bruto.",
+     "Não desconta condomínio, IPTU, meses vagos, manutenção e imposto de renda."
+    ],
+    [
+     "Falta a valorização.",
+     "O índice mede só o aluguel. O preço do imóvel também pode subir."
+    ],
+    [
+     "A Selic está em 13,75%.",
+     "Taxa básica de juros mantida pelo Banco Central em 4 de novembro."
+    ]
    ]
   },
   {
@@ -57,7 +78,18 @@
    "titulo": "ao ano nos apartamentos<br>de 1 quarto",
    "texto": "Os compactos rendem mais que a média. O m² do aluguel de 1 quarto sai a R$ 72,76, contra R$ 47,52 nos de 3 quartos."
   },
-  { "t": "fim" }
+  {
+   "t": "fim"
+  }
  ],
- "unsplash": ["CtA-GClVlS0", "2cfj0Y5ch00", "HDxvXqUJ3BQ"]
+ "unsplash": [
+  "CtA-GClVlS0",
+  "2cfj0Y5ch00",
+  "HDxvXqUJ3BQ"
+ ],
+ "publicado": {
+  "em": "2026-11-27T21:52:39.070Z",
+  "link": "https://www.instagram.com/p/DgQsF8lDXyu/",
+  "media_id": "18141107506630583"
+ }
 }
