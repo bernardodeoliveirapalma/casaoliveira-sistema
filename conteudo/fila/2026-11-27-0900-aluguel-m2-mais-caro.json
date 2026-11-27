@@ -1,0 +1,94 @@
+{
+ "titulo": "O m² de aluguel mais caro do Brasil",
+ "tipo": "carrossel",
+ "legenda": "Alugar em São Paulo custa R$ 66,16 por m² ao mês. É o m² mais caro entre as capitais.\nO índice FipeZAP de outubro mostra que o aluguel anunciado subiu 9,01% em 12 meses, quase o dobro da inflação. Recife, Belém e Florianópolis vêm logo atrás. Natal, Fortaleza e Rio foram as que mais subiram.\n\nQual cidade te surpreendeu? Salve para consultar depois e mande para quem está procurando imóvel.\n\nAdvertised rents in Brazil rose 9.01% in 12 months to October 2026. São Paulo leads the capitals at R$ 66.16 per m².\n\nFonte: Índice FipeZAP de Locação Residencial (Fipe e Grupo OLX), outubro de 2026, via InfoMoney, 17/11.\nFotos: Caroline Badran, Jucélio Silva, Filipe Freitas / Unsplash. Imagens ilustrativas.\n\n#imobiliariobrasil #mercadoimobiliario #aluguel #fipezap #saopaulo",
+ "laminas": [
+  {
+   "t": "capa",
+   "foto": "https://images.unsplash.com/photo-1764444218619-3dc7232b6192?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8M3x8c2FvJTIwcGF1bG8lMjBza3lsaW5lfGVufDF8MXx8fDE3OTU3Mjk3ODV8MA&ixlib=rb-4.1.0",
+   "rotulo": "Mercado",
+   "titulo": "O m² de aluguel<br>mais caro do Brasil",
+   "marca": false
+  },
+  {
+   "t": "numero",
+   "rotulo": "Mercado",
+   "n": "R$ 66,16",
+   "titulo": "o m² por mês em São Paulo",
+   "texto": "É o aluguel anunciado mais caro entre as capitais, segundo o índice FipeZAP de outubro. Um apartamento de 70 m² sai, em média, por cerca de R$ 4.630 ao mês."
+  },
+  {
+   "t": "lista",
+   "rotulo": "Ranking",
+   "titulo": "As 4 capitais mais caras",
+   "itens": [
+    [
+     "São Paulo.",
+     "R$ 66,16 por m² ao mês."
+    ],
+    [
+     "Recife.",
+     "R$ 64,94 por m² ao mês."
+    ],
+    [
+     "Belém.",
+     "R$ 62,24 por m² ao mês."
+    ],
+    [
+     "Florianópolis.",
+     "R$ 62,19 por m² ao mês."
+    ]
+   ]
+  },
+  {
+   "t": "foto",
+   "foto": "https://images.unsplash.com/photo-1703877892944-a4e37e739de9?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8NHx8Zmxvcmlhbm9wb2xpc3xlbnwxfDF8fHwxNzk1NzgwMjMyfDA&ixlib=rb-4.1.0",
+   "credito": "Foto: Jucélio Silva / Unsplash",
+   "legenda": "Florianópolis é a quarta capital mais cara para alugar."
+  },
+  {
+   "t": "lista",
+   "rotulo": "Mercado",
+   "titulo": "Onde o aluguel mais subiu",
+   "itens": [
+    [
+     "Natal.",
+     "Alta de 16,95% em 12 meses."
+    ],
+    [
+     "Fortaleza.",
+     "Alta de 16,69%."
+    ],
+    [
+     "Rio de Janeiro.",
+     "Alta de 14,10%."
+    ],
+    [
+     "Brasil.",
+     "Alta de 9,01%, contra 4,63% da inflação."
+    ]
+   ]
+  },
+  {
+   "t": "numero",
+   "rotulo": "Para mandar a alguém",
+   "n": "R$ 72,36",
+   "titulo": "o m² em Barueri, na Grande São Paulo",
+   "texto": "Entre as 36 cidades do índice, é o aluguel mais caro do país. Fica acima da própria capital paulista."
+  },
+  {
+   "t": "foto",
+   "foto": "https://images.unsplash.com/photo-1728475262216-8f8681b33ff7?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8NXx8c2FvJTIwcGF1bG8lMjBza3lsaW5lfGVufDF8MXx8fDE3OTU3Mjk3ODV8MA&ixlib=rb-4.1.0",
+   "credito": "Foto: Filipe Freitas / Unsplash",
+   "legenda": "Valores de anúncio, não de contratos assinados."
+  },
+  {
+   "t": "fim"
+  }
+ ],
+ "unsplash": [
+  "FmlpQoN-OHc",
+  "ozqrMP0y-zE",
+  "fewEJIsDpMA"
+ ]
+}
