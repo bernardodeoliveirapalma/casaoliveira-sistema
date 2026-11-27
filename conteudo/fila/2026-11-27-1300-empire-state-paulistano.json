@@ -1,0 +1,21 @@
+{
+ "titulo": "O Empire State de São Paulo",
+ "tipo": "reel",
+ "legenda": "São Paulo tem o seu próprio Empire State.\nO Edifício Altino Arantes, o eterno Banespão, foi inaugurado em 27 de junho de 1947 com arquitetura inspirada no arranha-céu de Nova York. São cerca de 161 metros e 35 andares no centro da cidade. Desde 2018 ele funciona como Farol Santander, um centro cultural.\n\nVocê já subiu até o topo?\n\nSalve para consultar depois e mande para quem ama São Paulo.\n\nSão Paulo's Altino Arantes Building, opened in 1947, was inspired by New York's Empire State Building.\n\nFonte: São Paulo Secreto, Forbes Brasil e Santander, 27/11.\nVídeo: PatyBaccarini / Pixabay\n\n#saopaulo #arquitetura #arranhaceu #centrodesaopaulo #imobiliariobrasil",
+ "roteiro": {
+  "estilo": "cinema",
+  "editoria": "Arquitetura",
+  "video": "https://cdn.pixabay.com/video/2019/08/10/25911-353764090_large.mp4",
+  "inicio": 0,
+  "credito": "Vídeo: PatyBaccarini / Pixabay",
+  "musica": "inspired",
+  "cenas": [
+   {"texto": "São Paulo tem o seu próprio *Empire State*.", "seg": 3},
+   {"rotulo": "Arquitetura", "texto": "O *Edifício Altino Arantes* nasceu inspirado no prédio de Nova York.", "seg": 3.5},
+   {"texto": "Inaugurado em *1947*, tem cerca de *161 metros* e 35 andares.", "seg": 3.5},
+   {"texto": "Desde 2018, o Banespão virou o *Farol Santander*.", "seg": 3.5},
+   {"texto": "Salve e mande para quem *ama São Paulo*.", "seg": 3}
+  ]
+ },
+ "pixabay": [25911]
+}
