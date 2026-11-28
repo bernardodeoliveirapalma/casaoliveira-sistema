@@ -1,0 +1,18 @@
+{
+ "titulo": "As ondas de Copacabana vieram de Lisboa",
+ "tipo": "reel",
+ "legenda": "O calçadão mais famoso do Brasil tem desenho português.\nAs ondas de pedra foram inspiradas no piso da Praça do Rossio, em Lisboa. Em 1970, o paisagista Roberto Burle Marx redesenhou a orla e deitou as ondas no sentido do mar, como vemos hoje. Basalto preto e calcário branco, em pedra portuguesa.\n\nCopacabana's famous wave sidewalk was inspired by Lisbon's Rossio Square and redrawn by Burle Marx in 1970.\n\nVocê já caminhou por esse calçadão?\nSalve para consultar depois e mande para quem ama o Rio.\n\nFonte: MAM Rio e NEH (Humanities), 28/11.\nVídeo: mgarridobr / Pixabay\n\n#imobiliariobrasil #arquiteturabrasileira #burlemarx #copacabana #paisagismo",
+ "roteiro": {
+  "estilo": "cinema", "editoria": "Design",
+  "video": "https://cdn.pixabay.com/video/2020/10/27/53493-474649248_large.mp4", "inicio": 0, "credito": "Vídeo: mgarridobr / Pixabay",
+  "musica": "bossa-antigua",
+  "cenas": [
+   {"texto": "As *ondas de Copacabana* vieram de Lisboa.", "seg": 3},
+   {"rotulo": "Design", "texto": "O desenho nasceu na *Praça do Rossio*, em Portugal.", "seg": 3.5},
+   {"texto": "Em 1970, *Burle Marx* deitou as ondas no *sentido do mar*.", "seg": 3.5},
+   {"texto": "Basalto preto e calcário branco: *pedra portuguesa*.", "seg": 3.5},
+   {"texto": "Salve e mande para quem *ama o Rio*.", "seg": 3}
+  ]
+ },
+ "pixabay": [53493]
+}
