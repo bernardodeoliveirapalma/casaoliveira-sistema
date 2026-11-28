@@ -1,0 +1,89 @@
+{
+ "titulo": "Quanto sobe seu aluguel em dezembro",
+ "tipo": "carrossel",
+ "legenda": "Quem renova aluguel em dezembro pelo IGP-M vai pagar 6,26% a mais.\nO índice da FGV subiu 1,24% em novembro e chegou a 6,26% em 12 meses. Um ano atrás, estava negativo. Num aluguel de R$ 3.000, são R$ 187,80 a mais por mês. Contratos pelo IPCA sobem menos.\n\nSeu contrato usa IGP-M ou IPCA? Salve para consultar depois e mande para quem está procurando imóvel.\n\nRent contracts adjusted by the IGP-M index in December will rise 6.26%, the 12-month figure to November 2026.\n\nFonte: IGP-M (FGV) e IPCA (IBGE), séries do Banco Central, 27/11. Lei 8.245/1991, art. 18.\nFotos: Evan Wise, Solen Feyissa / Unsplash. Imagens ilustrativas.\n\n#imobiliariobrasil #mercadoimobiliario #aluguel #igpm #reajustedealuguel",
+ "laminas": [
+  {
+   "t": "capa",
+   "foto": "https://images.unsplash.com/photo-1678895223308-da40c609e39b?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8Mnx8Y296eSUyMGFwYXJ0bWVudCUyMGxpdmluZyUyMHJvb218ZW58MXwxfHx8MTc5NTg2NjU1Nnww&ixlib=rb-4.1.0",
+   "rotulo": "Mercado",
+   "titulo": "Quanto sobe seu aluguel<br>em dezembro",
+   "marca": false
+  },
+  {
+   "t": "numero",
+   "rotulo": "Mercado",
+   "n": "6,26%",
+   "titulo": "é o IGP-M em 12 meses",
+   "texto": "É o índice que reajusta muitos contratos de aluguel. Quem faz aniversário de contrato em dezembro e usa o IGP-M terá esse aumento. Só em novembro, o índice subiu 1,24%."
+  },
+  {
+   "t": "lista",
+   "rotulo": "Na conta",
+   "titulo": "Quanto fica o seu aluguel",
+   "itens": [
+    [
+     "R$ 2.000.",
+     "Passa a R$ 2.125,20 por mês."
+    ],
+    [
+     "R$ 3.000.",
+     "Passa a R$ 3.187,80 por mês."
+    ],
+    [
+     "R$ 5.000.",
+     "Passa a R$ 5.313,00 por mês."
+    ],
+    [
+     "A conta.",
+     "Valor atual vezes 1,0626."
+    ]
+   ]
+  },
+  {
+   "t": "foto",
+   "foto": "https://images.unsplash.com/photo-1595039357995-905cad2933e3?ixid=M3wxMTQzOTkzfDB8MXxzZWFyY2h8Mnx8YXBhcnRtZW50JTIwYnVpbGRpbmclMjBmYWNhZGUlMjBiYWxjb25pZXN8ZW58MXwxfHx8MTc5NTg2NjU1N3ww&ixlib=rb-4.1.0",
+   "credito": "Foto: Solen Feyissa / Unsplash",
+   "legenda": "O índice que vale é o que está no seu contrato."
+  },
+  {
+   "t": "texto",
+   "rotulo": "Mercado",
+   "titulo": "Um ano atrás, era negativo",
+   "texto": "Em novembro de 2025, o IGP-M acumulava queda de 0,10% em 12 meses. Quem renovou naquela época quase não teve reajuste. Agora o índice volta a pesar no bolso de quem aluga."
+  },
+  {
+   "t": "numero",
+   "rotulo": "Para mandar a alguém",
+   "n": "4,63%",
+   "titulo": "é o IPCA em 12 meses",
+   "texto": "É a inflação oficial até outubro, o último dado. Num aluguel de R$ 3.000, o reajuste pelo IPCA sairia R$ 48,90 menor por mês."
+  },
+  {
+   "t": "lista",
+   "rotulo": "Guia",
+   "titulo": "Antes de pagar o reajuste",
+   "itens": [
+    [
+     "Confira o índice.",
+     "Vale o que está escrito no contrato."
+    ],
+    [
+     "Converse.",
+     "A Lei do Inquilinato permite combinar um novo valor."
+    ],
+    [
+     "Pense no longo prazo.",
+     "Um bom inquilino também tem valor para o dono."
+    ]
+   ]
+  },
+  {
+   "t": "fim"
+  }
+ ],
+ "unsplash": [
+  "v7MuTvQZkQU",
+  "KUYZJUcviI4"
+ ]
+}
